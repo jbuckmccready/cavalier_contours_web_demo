@@ -78,6 +78,9 @@
                 currentComponent
             };
         },
+        created(){
+            document.title = "Cavalier Contours";
+        },
     };
 </script>
 
