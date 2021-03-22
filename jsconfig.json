@@ -2,9 +2,11 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "esnext",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
   "include": [

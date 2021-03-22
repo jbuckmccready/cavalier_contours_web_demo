@@ -7,26 +7,14 @@
                     <div class="flex items-center">
                         <div class="hidden md:block">
                             <div class="ml-10 flex items-baseline space-x-4">
-                                <!-- Current: "bg-primary-900 text-white", Default: "text-gray-300 hover:bg-primary-700 hover:text-white" -->
-                                <router-link
-                                    to="/about"
-                                    class="nav-button"
+                                <button
+                                    v-for="(tab, index) in tabNames"
+                                    :key="tab"
+                                    :class="['nav-button', { active: currentTabIndex === index }]"
+                                    @click="currentTabIndex = index"
                                 >
-                                    About
-                                </router-link>
-
-                                <router-link
-                                    to="/staticaabb2dindex"
-                                    class="nav-button"
-                                >
-                                    Static AABB 2D Index
-                                </router-link>
-                                <router-link
-                                    to="/plineboolean"
-                                    class="nav-button"
-                                >
-                                    Polyline Boolean
-                                </router-link>
+                                    {{ tab }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -52,23 +40,42 @@
                 </div>
             </div>
         </nav>
-        <router-view
-            v-slot="{ Component }"
-            class="h-full w-full min-h-0"
+        <div
+            id="main-content"
+            class="w-full h-full min-h-0"
         >
+            <!-- Inactive components will be cached! -->
             <keep-alive>
-                <component :is="Component" />
+                <component :is="currentComponent" />
             </keep-alive>
-        </router-view>
+        </div>
     </div>
 </template>
 
 <script>
+    import About from '@/components/About.vue';
+    import StaticAABB2DIndexDemo from '@/components/static_aabb2d_index/StaticAABB2DIndexDemo.vue';
+    import PlineBooleanDemo from '@/components/pline_boolean/PlineBooleanDemo.vue';
+
+    import { ref, computed } from 'vue';
+
     export default {
         components: {
+            'about': About,
+            'static-aabb-index-demo': StaticAABB2DIndexDemo,
+            'polyline-boolean-demo': PlineBooleanDemo,
         },
         setup() {
+            const tabComponents = [About, StaticAABB2DIndexDemo, PlineBooleanDemo];
+            const tabNames = ['About', 'Static AABB Index', 'Polyline Boolean'];
+            const currentTabIndex = ref(0);
+
+            const currentComponent = computed(() => tabComponents[currentTabIndex.value]);
+
             return {
+                tabNames,
+                currentTabIndex,
+                currentComponent
             };
         },
     };
