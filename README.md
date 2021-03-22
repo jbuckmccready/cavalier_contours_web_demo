@@ -2,6 +2,8 @@
 Web demo app for visualizing, testing, and documenting the
 [cavalier_contours](https://github.com/jbuckmccready/cavalier_contours) Rust library.
 
+Interactive hosted page can be viewed [here](https://jbuckmccready.github.io/cavalier_contours_web_demo_page/).
+
 
 ## How to build
 Required Tools
