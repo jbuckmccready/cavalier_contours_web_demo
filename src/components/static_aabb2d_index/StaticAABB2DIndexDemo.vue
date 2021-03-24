@@ -21,7 +21,9 @@
                                 <option
                                     v-for="mode in allDemoModes"
                                     :key="mode"
-                                >{{ mode }}</option>
+                                >{{
+                                    mode
+                                }}</option>
                             </select>
                         </label>
                         <label class="block">
@@ -88,16 +90,15 @@
 </template>
 
 <script>
-    import { ref, watch } from 'vue';
-    import StaticAABB2DIndexScene from '@/components/static_aabb2d_index/StaticAABB2DIndexScene.vue';
-    import * as shared from '@/components/static_aabb2d_index/static_aabb2d_index.js';
+    import { ref, watch } from "vue";
+    import StaticAABB2DIndexScene from "@/components/static_aabb2d_index/StaticAABB2DIndexScene.vue";
+    import * as shared from "@/components/static_aabb2d_index/static_aabb2d.js";
 
     export default {
         components: {
-            StaticAABB2DIndexScene,
+            StaticAABB2DIndexScene
         },
-        props: {
-        },
+        props: {},
         setup() {
             let currentDemoMode = ref(shared.DEMO_MODE_NONE);
             const allDemoModes = shared.ALL_DEMO_MODES;
@@ -105,15 +106,21 @@
             let vertexCount = ref(100);
             const vertexCountMin = 10;
             const vertexCountMax = 1000;
-            watch(vertexCount, (newValue) => {
-                vertexCount.value = Math.min(Math.max(newValue, vertexCountMin), vertexCountMax);
+            watch(vertexCount, newValue => {
+                vertexCount.value = Math.min(
+                    Math.max(newValue, vertexCountMin),
+                    vertexCountMax
+                );
             });
 
             let indexNodeSize = ref(16);
             const indexNodeSizeMin = 4;
             const indexNodeSizeMax = 32;
-            watch(indexNodeSize, (newValue) => {
-                indexNodeSize.value = Math.min(Math.max(newValue, indexNodeSizeMin), indexNodeSizeMax);
+            watch(indexNodeSize, newValue => {
+                indexNodeSize.value = Math.min(
+                    Math.max(newValue, indexNodeSizeMin),
+                    indexNodeSizeMax
+                );
             });
 
             let editShape = ref(false);
@@ -126,12 +133,11 @@
                 indexNodeSize,
                 indexNodeSizeMin,
                 indexNodeSizeMax,
-                editShape,
+                editShape
             };
         }
     };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-</style>
+<style scoped></style>

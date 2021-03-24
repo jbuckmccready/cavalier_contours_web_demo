@@ -1,4 +1,3 @@
-
 <template>
     <div class="box-border w-full h-full overflow-hidden bg-gray-600">
         <canvas
@@ -9,46 +8,35 @@
 </template>
 
 <script>
-    import {
-        ref,
-        toRefs,
-        unref,
-        onMounted,
-        inject,
-        watchEffect,
-        watch,
-    } from "vue";
+    import { ref, toRefs, unref, onMounted, inject, watchEffect, watch } from "vue";
 
-    import CanvasScene from "@/core/rendering.js";
+    import { CanvasScene, HIT_DELTA, COLORS } from "@/core/rendering.js";
     import { createCirclePts, createSegAABB } from "@/core/shapes.js";
-    import * as shared from "@/components/static_aabb2d_index/static_aabb2d_index.js";
+    import * as shared from "@/components/static_aabb2d_index/static_aabb2d.js";
 
     export default {
         props: {
             currentDemoMode: {
                 type: String,
-                default: shared.DEMO_MODE_NONE,
+                default: shared.DEMO_MODE_NONE
             },
             vertexCount: {
                 type: Number,
-                default: 100,
+                default: 100
             },
             indexNodeSize: {
                 type: Number,
-                default: 16,
+                default: 16
             },
             editShape: {
                 type: Boolean,
-                default: false,
-            },
+                default: false
+            }
         },
         setup(props) {
-            const {
-                currentDemoMode,
-                vertexCount,
-                indexNodeSize,
-                editShape,
-            } = toRefs(props);
+            const { currentDemoMode, vertexCount, indexNodeSize, editShape } = toRefs(
+                props
+            );
             const canvasRef = ref(null);
             const wasm = inject("wasm");
             let canvasScene = null;
@@ -62,8 +50,7 @@
 
             let neighborsCircleCenter = [0, 0];
 
-            let vertexDim = 10;
-            let hitDelta = vertexDim / 2;
+            let hitDelta = HIT_DELTA;
             let radius = 500;
             let circlePoints = createCirclePts(0, 0, radius, unref(vertexCount));
             let boxes = createSegAABB(circlePoints);
@@ -79,17 +66,6 @@
 
             function drawToScene(scene) {
                 let index = new wasm.StaticAABB2DIndex(boxes, unref(indexNodeSize));
-                let colors = [
-                    "#DC2626",
-                    "#2563EB",
-                    "#059669",
-                    "#D97706",
-                    "#7C3AED",
-                    "#DB2777",
-                    "#EA580C",
-                    "#65A30D",
-                    "#C026D3",
-                ];
 
                 if (unref(currentDemoMode) === shared.DEMO_MODE_INDEX_BOXES) {
                     const allBoxes = index.allBoxes();
@@ -107,42 +83,30 @@
                             allBoxes[i + 1],
                             allBoxes[i + 2],
                             allBoxes[i + 3],
-                            { color: colors[currentBoundIndex] }
+                            { color: COLORS[currentBoundIndex % COLORS.length] }
                         );
                     }
                 } else if (unref(currentDemoMode) === shared.DEMO_MODE_QUERY_BOX) {
-                    scene.drawRect(
-                        queryMinX(),
-                        queryMinY(),
-                        queryMaxX(),
-                        queryMaxY(),
-                        { color: "blue" }
-                    );
+                    scene.drawRect(queryMinX(), queryMinY(), queryMaxX(), queryMaxY(), {
+                        color: "blue"
+                    });
 
-                    scene.drawScaledRectAtPoint(
-                        queryBox[0],
-                        queryBox[1],
-                        hitDelta,
-                        { fill: true, color: "blue" }
-                    );
-                    scene.drawScaledRectAtPoint(
-                        queryBox[0],
-                        queryBox[3],
-                        hitDelta,
-                        { fill: true, color: "blue" }
-                    );
-                    scene.drawScaledRectAtPoint(
-                        queryBox[2],
-                        queryBox[3],
-                        hitDelta,
-                        { fill: true, color: "blue" }
-                    );
-                    scene.drawScaledRectAtPoint(
-                        queryBox[2],
-                        queryBox[1],
-                        hitDelta,
-                        { fill: true, color: "blue" }
-                    );
+                    scene.drawScaledRectAtPoint(queryBox[0], queryBox[1], hitDelta, {
+                        fill: true,
+                        color: "blue"
+                    });
+                    scene.drawScaledRectAtPoint(queryBox[0], queryBox[3], hitDelta, {
+                        fill: true,
+                        color: "blue"
+                    });
+                    scene.drawScaledRectAtPoint(queryBox[2], queryBox[3], hitDelta, {
+                        fill: true,
+                        color: "blue"
+                    });
+                    scene.drawScaledRectAtPoint(queryBox[2], queryBox[1], hitDelta, {
+                        fill: true,
+                        color: "blue"
+                    });
                     let queryResults = index.query(
                         queryMinX(),
                         queryMinY(),
@@ -154,13 +118,9 @@
                         if (queryResults.includes(i / 4)) {
                             color = "red";
                         }
-                        scene.drawRect(
-                            boxes[i],
-                            boxes[i + 1],
-                            boxes[i + 2],
-                            boxes[i + 3],
-                            { color: color }
-                        );
+                        scene.drawRect(boxes[i], boxes[i + 1], boxes[i + 2], boxes[i + 3], {
+                            color: color
+                        });
                     }
                 } else if (unref(currentDemoMode) === shared.DEMO_MODE_NEIGHBORS) {
                     scene.drawScaledRectAtPoint(
@@ -178,7 +138,12 @@
                         maxDistance
                     );
 
-                    let distCirclePts = createCirclePts(neighborsCircleCenter[0], neighborsCircleCenter[1], maxDistance, 100);
+                    let distCirclePts = createCirclePts(
+                        neighborsCircleCenter[0],
+                        neighborsCircleCenter[1],
+                        maxDistance,
+                        100
+                    );
                     scene.drawPolylineArray(distCirclePts);
 
                     for (let i = 0; i < boxes.length; i += 4) {
@@ -190,13 +155,9 @@
                             let centerY = (boxes[i + 3] - boxes[i + 1]) / 2 + boxes[i + 1];
                             scene.drawText(resultIdx, centerX, centerY);
                         }
-                        scene.drawRect(
-                            boxes[i],
-                            boxes[i + 1],
-                            boxes[i + 2],
-                            boxes[i + 3],
-                            { color: color }
-                        );
+                        scene.drawRect(boxes[i], boxes[i + 1], boxes[i + 2], boxes[i + 3], {
+                            color: color
+                        });
                     }
                 }
                 index.free();
@@ -227,7 +188,7 @@
 
                 let isNeighborsCircleGrabbed = false;
 
-                canvasScene.dragBeginHandler = (pt) => {
+                canvasScene.dragBeginHandler = pt => {
                     const grabCorner = (xIdx, yIdx) => {
                         let cornerPt = { x: queryBox[xIdx], y: queryBox[yIdx] };
 
@@ -250,10 +211,14 @@
                             isQueryBoxGrabbed = true;
                             return true;
                         }
-                    } else if (
-                        unref(currentDemoMode) === shared.DEMO_MODE_NEIGHBORS
-                    ) {
-                        if (canvasScene.scaledHitTest(pt, { x: neighborsCircleCenter[0], y: neighborsCircleCenter[1] }, hitDelta)) {
+                    } else if (unref(currentDemoMode) === shared.DEMO_MODE_NEIGHBORS) {
+                        if (
+                            canvasScene.scaledHitTest(
+                                pt,
+                                { x: neighborsCircleCenter[0], y: neighborsCircleCenter[1] },
+                                hitDelta
+                            )
+                        ) {
                             isNeighborsCircleGrabbed = true;
                             grabbedXIdx = 0;
                             grabbedYIdx = 1;
@@ -282,7 +247,7 @@
                     return false;
                 };
 
-                canvasScene.draggingHandler = (pt) => {
+                canvasScene.draggingHandler = pt => {
                     if (grabbedXIdx < 0 || grabbedYIdx < 0) {
                         return;
                     }
@@ -311,9 +276,7 @@
                 canvasScene.redrawScene();
             }
 
-            watchEffect(() =>
-                console.log("currentDemoMode:", unref(currentDemoMode))
-            );
+            watchEffect(() => console.log("currentDemoMode:", unref(currentDemoMode)));
             watchEffect(() => console.log("vertexCount:", unref(vertexCount)));
             watchEffect(() => console.log("indexNodeSize:", unref(indexNodeSize)));
             watchEffect(() => console.log("editShape:", unref(editShape)));
@@ -331,11 +294,10 @@
             });
 
             return {
-                canvasRef,
+                canvasRef
             };
-        },
+        }
     };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

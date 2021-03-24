@@ -19,7 +19,9 @@
                         </div>
                     </div>
                     <div class="-mr-2 flex">
-                        <button class="bg-primary-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-800 focus:ring-white">
+                        <button
+                            class="bg-primary-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-800 focus:ring-white"
+                        >
                             <svg
                                 class="block h-6 w-6"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -53,24 +55,38 @@
 </template>
 
 <script>
-    import About from '@/components/About.vue';
-    import StaticAABB2DIndexDemo from '@/components/static_aabb2d_index/StaticAABB2DIndexDemo.vue';
-    import PlineBooleanDemo from '@/components/pline_boolean/PlineBooleanDemo.vue';
+    import About from "@/components/About.vue";
+    import StaticAABB2DIndexDemo from "@/components/static_aabb2d_index/StaticAABB2DIndexDemo.vue";
+    import PlineBooleanDemo from "@/components/pline_boolean/PlineBooleanDemo.vue";
+    import PlineOffsetDemo from "@/components/pline_offset/PlineOffsetDemo.vue";
 
-    import { ref, computed } from 'vue';
+    import { ref, computed } from "vue";
 
     export default {
         components: {
-            'about': About,
-            'static-aabb-index-demo': StaticAABB2DIndexDemo,
-            'polyline-boolean-demo': PlineBooleanDemo,
+            about: About,
+            "static-aabb-index-demo": StaticAABB2DIndexDemo,
+            "polyline-boolean-demo": PlineBooleanDemo,
+            "polyline-offset-demo": PlineOffsetDemo
         },
         setup() {
-            const tabComponents = [About, StaticAABB2DIndexDemo, PlineBooleanDemo];
-            const tabNames = ['About', 'Static AABB Index', 'Polyline Boolean'];
+            const tabComponents = [
+                About,
+                StaticAABB2DIndexDemo,
+                PlineBooleanDemo,
+                PlineOffsetDemo
+            ];
+            const tabNames = [
+                "About",
+                "Static AABB Index",
+                "Polyline Boolean",
+                "Polyline Offset"
+            ];
             const currentTabIndex = ref(0);
 
-            const currentComponent = computed(() => tabComponents[currentTabIndex.value]);
+            const currentComponent = computed(
+                () => tabComponents[currentTabIndex.value]
+            );
 
             return {
                 tabNames,
@@ -78,9 +94,9 @@
                 currentComponent
             };
         },
-        created(){
+        created() {
             document.title = "Cavalier Contours";
-        },
+        }
     };
 </script>
 
@@ -93,5 +109,9 @@
 }
 .nav-button:hover {
   @apply bg-primary-700 text-white;
+}
+
+.basic-button {
+  @apply bg-gray-200 p-2;
 }
 </style>

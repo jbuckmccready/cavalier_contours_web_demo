@@ -56,3 +56,46 @@ export function createSegAABB(segPoints) {
 
     return boxes;
 }
+
+export function createRectanglePlineVertexes(minX, minY, maxX, maxY) {
+    return new Float64Array(
+        [
+            minX, minY, 0,
+            maxX, minY, 0,
+            maxX, maxY, 0,
+            minX, maxY, 0
+        ]
+    );
+}
+
+export function createCirclePlineVertexes(centerX, centerY, radius) {
+    return new Float64Array(
+        [
+            centerX - radius, centerY, 1,
+            centerX + radius, centerY, 1,
+        ]
+    );
+}
+
+export function createExample1PlineVertexes(scale) {
+    let scaleToApply = scale === undefined ? 1.0 : scale;
+    let result = new Float64Array(
+        [
+            10, 10, -0.5,
+            8, 9, 0.374794619217547,
+            21, 0, 0,
+            23, 0, 1,
+            32, 0, -0.5,
+            28, 0, 0.5,
+            39, 21, 0,
+            28, 12, 0.5,
+        ]
+    );
+
+    for (let i = 0; i < result.length; i += 3) {
+        result[i] = result[i] * scaleToApply;
+        result[i + 1] = result[i + 1] * scaleToApply;
+    }
+
+    return result;
+}

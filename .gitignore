@@ -9,7 +9,6 @@ wasm/pkg
 wasm/target
 wasm/cavalier_contours_web_ffi/target
 wasm/cavalier_contours_web_ffi/target
-wasm/Cargo.lock
 
 
 # local env files

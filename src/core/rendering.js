@@ -1,4 +1,9 @@
-export default class CanvasScene {
+export const VERTEX_DIM = 10;
+export const HIT_DELTA = VERTEX_DIM / 2;
+export const COLORS = ["#DC2626", "#2563EB", "#059669", "#D97706", "#7C3AED", "#DB2777", "#EA580C", "#65A30D", "#C026D3"];
+
+
+export class CanvasScene {
     constructor(canvas, redrawCallBack) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
@@ -9,6 +14,8 @@ export default class CanvasScene {
         this.dragBeginHandler = null;
         this.draggingHandler = null;
         this.dragReleaseHandler = null;
+
+        this.cursorPosCallBack = null;
 
         trackTransforms(this.ctx);
         this.ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -92,6 +99,7 @@ export default class CanvasScene {
     drawCavcPolyline(polyline, options = {}) {
         const isClosed = options?.isClosed === undefined ? true : options.isClosed;
         const color = options?.color === undefined ? 'black' : options.color;
+        const noTransparency = options?.noTransparency  === undefined ? false : options.noTransparency;
         let lineData = polyline.arcsToApproxLinesData(1e-2);
         this.ctx.beginPath();
         this.ctx.moveTo(lineData[0], lineData[1]);
@@ -105,8 +113,12 @@ export default class CanvasScene {
         if (isClosed && options?.fill) {
             this.ctx.strokeStyle = "black";
             this.ctx.stroke();
+            if (!noTransparency) {
+                this.ctx.globalAlpha = 0.7;
+            }
             this.ctx.fillStyle = color;
             this.ctx.fill();
+            this.ctx.globalAlpha = 1.0;
         } else {
             this.ctx.strokeStyle = color;
             this.ctx.stroke();
@@ -214,6 +226,10 @@ export default class CanvasScene {
             lastX = evt.pageX - this.canvas.offsetLeft;
             lastY = evt.pageY - this.canvas.offsetTop;
             var pt = ctx.transformedPoint(lastX, lastY);
+
+            if (this.cursorPosCallBack) {
+                this.cursorPosCallBack(pt);
+            }
 
             if (dragHandlersEngaged && this.draggingHandler) {
                 this.draggingHandler(pt);

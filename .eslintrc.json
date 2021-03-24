@@ -5,7 +5,9 @@
     "es6": true,
     "node": true
   },
-  "plugins": ["vue"],
+  "plugins": [
+    "vue"
+  ],
   "extends": [
     "eslint:recommended",
     "plugin:vue/vue3-essential",
@@ -18,18 +20,37 @@
     },
     "sourceType": "module"
   },
-  "ignorePatterns": ["dist", "node_modules", "wasm"],
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "wasm"
+  ],
   "rules": {
-    "keyword-spacing": ["error", {
+    "keyword-spacing": [
+      "error",
+      {
         "overrides": {
-          "if": { "after": true },
-          "for": { "after": true },
-          "while": { "after": true }
+          "if": {
+            "after": true
+          },
+          "for": {
+            "after": true
+          },
+          "while": {
+            "after": true
+          }
         }
-    }],
+      }
+    ],
     "no-trailing-spaces": "warn",
-    "semi": ["error", "always"],
-    "indent": ["error", 4],
+    "semi": [
+      "error",
+      "always"
+    ],
+    "indent": [
+      "error",
+      4
+    ],
     "no-const-assign": "warn",
     "no-this-before-super": "warn",
     "no-undef": "warn",
@@ -38,13 +59,27 @@
     "constructor-super": "warn",
     "valid-typeof": "warn",
     "eqeqeq": "warn",
-    "vue/script-indent": ["error", 4, { "baseIndent": 1 }],
-    "vue/html-indent": ["error", 4],
-    "vue/attribute-hyphenation": ["error", "always"]
+    "vue/script-indent": [
+      "error",
+      4,
+      {
+        "baseIndent": 1
+      }
+    ],
+    "vue/html-indent": [
+      "error",
+      4
+    ],
+    "vue/attribute-hyphenation": [
+      "error",
+      "always"
+    ]
   },
   "overrides": [
     {
-      "files": ["*.vue"],
+      "files": [
+        "*.vue"
+      ],
       "rules": {
         "indent": "off"
       }

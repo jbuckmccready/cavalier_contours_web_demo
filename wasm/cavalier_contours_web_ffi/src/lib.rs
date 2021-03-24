@@ -123,7 +123,7 @@ impl Polyline {
             "vertex_data expected to be divisible by 3 ([x, y, bulge] triplets)"
         );
 
-        let mut result = cavc::Polyline::with_capacity(chunks.len());
+        let mut result = cavc::Polyline::with_capacity(chunks.len(), is_closed);
         result.set_is_closed(is_closed);
         while let Some(&[x, y, bulge]) = chunks.next() {
             result.add(x, y, bulge);
@@ -140,6 +140,7 @@ impl Polyline {
         self.0.clear()
     }
 
+    #[wasm_bindgen(js_name = "vertexData")]
     pub fn vertex_data(&self) -> Box<[f64]> {
         pline_vertexes_to_data(&self.0).into_boxed_slice()
     }
@@ -158,6 +159,11 @@ impl Polyline {
         self.0.area()
     }
 
+    #[wasm_bindgen(js_name = "pathLength")]
+    pub fn path_length(&self) -> f64 {
+        self.0.path_length()
+    }
+
     pub fn scale(&mut self, scale_factor: f64) {
         self.0.scale(scale_factor);
     }
@@ -173,10 +179,10 @@ impl Polyline {
 
     pub fn boolean(&self, other: &Polyline, operation: i32) -> JsValue {
         let op = match operation {
-            0 => cavc::BooleanOp::OR,
-            1 => cavc::BooleanOp::AND,
-            2 => cavc::BooleanOp::NOT,
-            3 => cavc::BooleanOp::XOR,
+            0 => cavc::BooleanOp::Or,
+            1 => cavc::BooleanOp::And,
+            2 => cavc::BooleanOp::Not,
+            3 => cavc::BooleanOp::Xor,
             _ => panic!("boolean op expected to be 0, 1, 2, or 3"),
         };
         let boolean_result = self.0.boolean(&other.0, op);
@@ -213,13 +219,13 @@ impl Polyline {
     }
 
     #[wasm_bindgen(js_name = "createApproxSpatialIndex")]
-    pub fn create_approx_spatial_index(&self) -> StaticAABB2DIndex {
-        StaticAABB2DIndex(self.0.create_approx_spatial_index().unwrap())
+    pub fn create_approx_aabb_index(&self) -> StaticAABB2DIndex {
+        StaticAABB2DIndex(self.0.create_approx_aabb_index().unwrap())
     }
 
     #[wasm_bindgen(js_name = "createSpatialIndex")]
-    pub fn create_spatial_index(&self) -> StaticAABB2DIndex {
-        StaticAABB2DIndex(self.0.create_spatial_index().unwrap())
+    pub fn create_aabb_index(&self) -> StaticAABB2DIndex {
+        StaticAABB2DIndex(self.0.create_aabb_index().unwrap())
     }
 
     pub fn extents(&self) -> Box<[f64]> {
@@ -262,6 +268,25 @@ impl Polyline {
             data.push(v.y);
         }
         data.into_boxed_slice()
+    }
+
+    #[wasm_bindgen(js_name = "testProperties")]
+    pub fn test_properties(&self) -> js_sys::Object {
+        let result = js_sys::Object::new();
+
+        // remove redundant vertexes for consistent vertex count
+        let pline = self.0.remove_redundant(1e-5);
+        let vertex_count = pline.len() as u32;
+        let extents = pline.extents().unwrap();
+        js_sys::Reflect::set(&result, &"vertexCount".into(), &vertex_count.into()).unwrap();
+        js_sys::Reflect::set(&result, &"area".into(), &pline.area().into()).unwrap();
+        js_sys::Reflect::set(&result, &"pathLength".into(), &pline.path_length().into()).unwrap();
+        js_sys::Reflect::set(&result, &"minX".into(), &extents.min_x.into()).unwrap();
+        js_sys::Reflect::set(&result, &"minY".into(), &extents.min_y.into()).unwrap();
+        js_sys::Reflect::set(&result, &"maxX".into(), &extents.max_x.into()).unwrap();
+        js_sys::Reflect::set(&result, &"maxY".into(), &extents.max_y.into()).unwrap();
+
+        result
     }
 
     #[wasm_bindgen(js_name = "logToConsole")]
