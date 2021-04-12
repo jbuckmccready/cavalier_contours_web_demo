@@ -97,7 +97,7 @@ export class CanvasScene {
     }
 
     drawCavcPolyline(polyline, options = {}) {
-        const isClosed = options?.isClosed === undefined ? true : options.isClosed;
+        const isClosed = polyline.isClosed;
         const color = options?.color === undefined ? 'black' : options.color;
         const noTransparency = options?.noTransparency  === undefined ? false : options.noTransparency;
         let lineData = polyline.arcsToApproxLinesData(1e-2);

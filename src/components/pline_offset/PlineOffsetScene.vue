@@ -16,19 +16,32 @@
     import * as utils from "@/core/utils.js";
 
     export default {
-        props: {},
-        setup(props) {
-            // const { currentBooleanOp, fillPolylines } = toRefs(props);
+        props: {
+            offset: {
+                type: Number,
+                default: 1
+            },
+            maxOffsets: {
+                type: Number,
+                default: 1
+            },
+            plineJsonStr: {
+                type: String,
+                default: ""
+            }
+        },
+        emits: ["update:plineJsonStr"],
+        setup(props, { emit }) {
+            const { offset, maxOffsets, plineJsonStr } = toRefs(props);
             const canvasRef = ref(null);
             const wasm = inject("wasm");
             let canvasScene = null;
 
-            let pline1_arr = shapes.createExample1PlineVertexes(10);
-            // pline1_arr[3] = 3;
-            // pline1_arr[4] = 10;
+            let pline1Array = shapes.createExample1PlineVertexes(10);
+            let pline1IsClosed = true;
 
             function drawToScene(scene) {
-                let pline1 = new wasm.Polyline(pline1_arr, true);
+                let pline1 = new wasm.Polyline(pline1Array, pline1IsClosed);
                 // draw vertexes
                 let vertexes = pline1.vertexData();
                 for (let i = 0; i < vertexes.length; i += 3) {
@@ -42,32 +55,38 @@
                 scene.drawCavcPolyline(pline1, { color: "black" });
 
                 // draw offsets
-                let isCCWPline = pline1.area() > 0;
-                let offsetValue = 3;
-                let offsetResults = pline1.parallelOffset(offsetValue);
-                let nextResults = [];
-                let offsetCount = 0;
-                const maxOffsetCount = 1000;
-                while (offsetResults.length !== 0 && offsetCount < maxOffsetCount) {
-                    for (let i = 0; i < offsetResults.length; ++i) {
-                        let offsetIsCCW = offsetResults[i].area() > 0;
-                        if (isCCWPline !== offsetIsCCW) {
-                            scene.drawCavcPolyline(offsetResults[i], { color: "red" });
-                            continue;
+                let maxOffsetsValue = unref(maxOffsets);
+                if (maxOffsetsValue > 0) {
+                    let isCCWPline = pline1.area() > 0;
+                    let offsetValue = unref(offset);
+                    let offsetResults = pline1.parallelOffset(offsetValue);
+                    let nextResults = [];
+                    let offsetCount = 0;
+                    const maxOffsetCount = maxOffsetsValue;
+                    while (offsetResults.length !== 0 && offsetCount < maxOffsetCount) {
+                        // console.log("offsetResult:", offsetCount);
+                        for (let i = 0; i < offsetResults.length; ++i) {
+                            // offsetResults[i].logToConsole();
+                            if (pline1IsClosed) {
+                                let offsetIsCCW = offsetResults[i].area() > 0;
+                                if (isCCWPline !== offsetIsCCW) {
+                                    scene.drawCavcPolyline(offsetResults[i], { color: "red" });
+                                    continue;
+                                }
+                            }
+                            scene.drawCavcPolyline(offsetResults[i], { color: "blue" });
+                            offsetCount += 1;
+                            offsetResults[i]
+                                .parallelOffset(offsetValue)
+                                .forEach(o => nextResults.push(o));
                         }
-                        scene.drawCavcPolyline(offsetResults[i], { color: "blue" });
-                        offsetCount += 1;
-                        offsetResults[i]
-                            .parallelOffset(offsetValue)
-                            .forEach(o => nextResults.push(o));
+                        offsetResults.forEach(p => p.free());
+                        offsetResults = nextResults;
+                        nextResults = [];
                     }
+
                     offsetResults.forEach(p => p.free());
-                    offsetResults = nextResults;
-                    nextResults = [];
                 }
-
-                offsetResults.forEach(p => p.free());
-
                 pline1.free();
             }
 
@@ -81,8 +100,8 @@
 
                 let grabbedIndex = -1;
                 canvasScene.dragBeginHandler = pt => {
-                    for (let i = 0; i < pline1_arr.length; i += 3) {
-                        let vertexPt = { x: pline1_arr[i], y: pline1_arr[i + 1] };
+                    for (let i = 0; i < pline1Array.length; i += 3) {
+                        let vertexPt = { x: pline1Array[i], y: pline1Array[i + 1] };
                         if (canvasScene.scaledHitTest(pt, vertexPt, HIT_DELTA)) {
                             grabbedIndex = i;
                             return true;
@@ -97,9 +116,13 @@
                         return;
                     }
 
-                    pline1_arr[grabbedIndex] = pt.x;
-                    pline1_arr[grabbedIndex + 1] = pt.y;
-                    canvasScene.redrawScene();
+                    pline1Array[grabbedIndex] = pt.x;
+                    pline1Array[grabbedIndex + 1] = pt.y;
+                    emit(
+                        "update:plineJsonStr",
+                        utils.plineArrayToJsonStr(pline1Array, pline1IsClosed)
+                    );
+                    // scene will be redrawn due to jsonStr update
                 };
 
                 canvasScene.dragReleaseHandler = () => {
@@ -112,19 +135,46 @@
                 canvasScene.redrawScene();
             }
 
-            // watchEffect(() =>
-            //     console.log("currentBooleanOp:", unref(currentBooleanOp))
-            // );
-            // watchEffect(() => console.log("fillPolylines:", unref(fillPolylines)));
+            watch([offset, maxOffsets], () => {
+                canvasScene.redrawScene();
+            });
 
-            // watch([currentBooleanOp, fillPolylines], () => canvasScene.redrawScene());
+            watch(plineJsonStr, () => {
+                let v = unref(plineJsonStr);
+                let o = utils.jsonStrToPlineArray(v);
+                if (o === null) {
+                    return;
+                }
+                pline1Array = o.array;
+                pline1IsClosed = o.isClosed;
+                canvasScene.redrawScene();
+            });
 
             onMounted(() => {
                 setupCanvasScene();
             });
 
+            const getRustTestCodeString = () => {
+                let offsetValue = unref(offset);
+                let pline1 = new wasm.Polyline(pline1Array, pline1IsClosed);
+                let offsetResults = pline1.parallelOffset(offsetValue);
+                let inputPlineStr = utils.createPlineRustCodeStr(pline1);
+                let testPropertiesStr = utils.createPlinePropertiesSetRustCodeStr(
+                    offsetResults
+                );
+
+                let result = `(${inputPlineStr}, ${utils.toRustf64Str(offsetValue)}) =>
+                    ${testPropertiesStr}`;
+
+                offsetResults.forEach(r => r.free());
+                pline1.free();
+
+                return result;
+            };
+
             return {
-                canvasRef
+                canvasRef,
+                getRustTestCodeString
             };
         }
     };

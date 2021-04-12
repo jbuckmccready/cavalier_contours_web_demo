@@ -1,8 +1,8 @@
-export const BOOLEAN_NONE = "NONE";
-export const BOOLEAN_OR = "OR";
-export const BOOLEAN_AND = "AND";
-export const BOOLEAN_NOT = "NOT";
-export const BOOLEAN_XOR = "XOR";
+export const BOOLEAN_NONE = "None";
+export const BOOLEAN_OR = "Or";
+export const BOOLEAN_AND = "And";
+export const BOOLEAN_NOT = "Not";
+export const BOOLEAN_XOR = "Xor";
 
 export const ALL_BOOLEAN_OPS = [
     BOOLEAN_NONE,

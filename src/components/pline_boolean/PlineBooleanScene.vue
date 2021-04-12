@@ -32,17 +32,11 @@
             const wasm = inject("wasm");
             let canvasScene = null;
 
-            let pline1_arr = shapes.createExample1PlineVertexes(10);
-            pline1_arr[3] = 3;
-            pline1_arr[4] = 10;
+            let pline1Array = shapes.createExample1PlineVertexes(10);
+            pline1Array[3] = 3;
+            pline1Array[4] = 10;
 
-            // let pline1_arr = new Float64Array([-50, 0, 1, 50, 0, 1]);
-
-            let pline2_arr = shapes.createExample1PlineVertexes(10);
-            // pline2_arr[0] = 3;
-            // pline2_arr[1] = 10;
-
-            // let pline2_arr = shapes.createRectanglePlineVertexes(-50, 0, 50, 50);
+            let pline2Array = shapes.createExample1PlineVertexes(10);
 
             // helper function to perform boolean operation between two polylines, visit all results
             // and free/clean up memory
@@ -65,8 +59,9 @@
             };
 
             function drawToScene(scene) {
-                let pline1 = new wasm.Polyline(pline1_arr, true);
-                let pline2 = new wasm.Polyline(pline2_arr, true);
+                let pline1 = new wasm.Polyline(pline1Array, true);
+                let pline2 = new wasm.Polyline(pline2Array, true);
+                pline2.cycleVertexes(2);
                 let pline1Color = "red";
                 let pline2Color = "blue";
                 // draw vertexes
@@ -119,7 +114,7 @@
                 canvasScene.connectEvents();
 
                 let grabbedIndex = -1;
-                let grabbedPlineArr = pline1_arr;
+                let grabbedPlineArr = pline1Array;
 
                 canvasScene.dragBeginHandler = pt => {
                     let tryGrabPline = plineArr => {
@@ -135,7 +130,7 @@
                         return false;
                     };
 
-                    if (tryGrabPline(pline1_arr) || tryGrabPline(pline2_arr)) {
+                    if (tryGrabPline(pline1Array) || tryGrabPline(pline2Array)) {
                         return true;
                     }
 
@@ -175,43 +170,12 @@
             });
 
             const getRustTestCodeString = () => {
-                let pline1 = new wasm.Polyline(pline1_arr, true);
-                let pline2 = new wasm.Polyline(pline2_arr, true);
+                let pline1 = new wasm.Polyline(pline1Array, true);
+                let pline2 = new wasm.Polyline(pline2Array, true);
 
-                const createPlineArrayString = pline => {
-                    let vertexData = pline.vertexData();
-                    let result = "[";
-                    for (let i = 0; i < vertexData.length; i += 3) {
-                        let values = [vertexData[i], vertexData[i + 1], vertexData[i + 2]];
-                        result += "(" + values.map(utils.toRustf64Str).join(", ") + "), ";
-                    }
-                    result = result.slice(0, -2) + "]";
-                    return result;
-                };
-
-                const createPlinePropertiesString = p => {
-                    let f64Props = [p.area, p.pathLength, p.minX, p.minY, p.maxX, p.maxY];
-                    return (
-                        "PlineProperties::new(" +
-                        p.vertexCount.toString() +
-                        ", " +
-                        f64Props.map(utils.toRustf64Str).join(", ") +
-                        ")"
-                    );
-                };
-
-                const createPlinePropertiesSetString = propertiesSet => {
-                    return (
-                        "&[" +
-                        propertiesSet.map(p => createPlinePropertiesString(p)).join(", ") +
-                        "]"
-                    );
-                };
-
-                let result = "(\n    pline_closed!";
-                result += createPlineArrayString(pline1) + ",\n";
-                result +=
-                    "    pline_closed!" + createPlineArrayString(pline2) + "\n)\n=>\n[\n";
+                let result = "(\n    ";
+                result += utils.createPlineRustCodeStr(pline1) + ",\n";
+                result += "    " + utils.createPlineRustCodeStr(pline2) + "\n)\n=>\n[\n";
 
                 let resultPosPlineProperties = [];
                 let resultNegPlineProperties = [];
@@ -221,22 +185,27 @@
                         pline1,
                         pline2,
                         op,
-                        p => resultPosPlineProperties.push(p.testProperties()),
-                        p => resultNegPlineProperties.push(p.testProperties())
+                        p =>
+                            resultPosPlineProperties.push(
+                                utils.createPlineTestPropertiesRustCodeStr(p)
+                            ),
+                        p =>
+                            resultNegPlineProperties.push(
+                                utils.createPlineTestPropertiesRustCodeStr(p)
+                            )
                     );
 
                     result +=
-                        `    (BooleanOp::${op}, ` +
-                        createPlinePropertiesSetString(resultPosPlineProperties) +
-                        ", " +
-                        createPlinePropertiesSetString(resultNegPlineProperties) +
-                        "),\n";
+                        `    (BooleanOp::${op}, &[` +
+                        resultPosPlineProperties.join(", ") +
+                        "], &[" +
+                        resultNegPlineProperties.join(", ") +
+                        "]),\n";
 
                     resultPosPlineProperties = [];
                     resultNegPlineProperties = [];
                 });
-                result = result.slice(0, -2);
-                result += "\n]";
+                result = result.slice(0, -2) + "\n]";
 
                 pline1.free();
                 pline2.free();

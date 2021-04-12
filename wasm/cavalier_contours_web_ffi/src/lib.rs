@@ -124,7 +124,6 @@ impl Polyline {
         );
 
         let mut result = cavc::Polyline::with_capacity(chunks.len(), is_closed);
-        result.set_is_closed(is_closed);
         while let Some(&[x, y, bulge]) = chunks.next() {
             result.add(x, y, bulge);
         }
@@ -138,6 +137,14 @@ impl Polyline {
 
     pub fn clear(&mut self) {
         self.0.clear()
+    }
+
+    #[wasm_bindgen(js_name = "cycleVertexes")]
+    pub fn cycle_vertexes(&mut self, count: usize) {
+        assert!(self.0.is_closed());
+        let iter = self.0.iter().cycle().skip(count).take(self.0.len());
+
+        self.0 = cavc::Polyline::from_iter(iter.copied(), true);
     }
 
     #[wasm_bindgen(js_name = "vertexData")]
