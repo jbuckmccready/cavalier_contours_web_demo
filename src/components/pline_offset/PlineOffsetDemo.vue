@@ -1,45 +1,51 @@
 <template>
   <div class="w-full h-full flex flex-row">
-    <div class="flex-1 h-full min-w-0 box-border border-primary-500 border-r-2">
-      <PlineOffsetScene
-        ref="plineOffsetSceneRef"
-        v-model:plineJsonStr="plineJsonStr"
-        :offset="offset"
-        :max-offsets="offsetCount"
-      />
-    </div>
-    <div class="w-96 overflow-auto">
-      <div class="py-4 px-4">
-        <div class="max-w-md">
-          <div class="grid grid-cols-1 gap-2">
-            <InputSlider
-              v-model="offset"
-              :min="offsetMin"
-              :max="offsetMax"
-              title="Offset"
-            />
-            <InputSlider
-              v-model="offsetCount"
-              :min="offsetCountMin"
-              :max="offsetCountMax"
-              title="Offset Count"
-            />
-          </div>
-          <label class="block">
-            <span class="text-gray-700">Polyline:</span>
-            <textarea
-              v-model="plineJsonStr"
-              class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-              rows="6"
-            />
-          </label>
+    <Splitpanes vertical>
+      <Pane>
+        <div
+          class="flex-1 h-full min-w-0 box-border border-primary-500 border-r-2"
+        >
+          <PlineOffsetScene
+            ref="plineOffsetSceneRef"
+            v-model:plineJsonStr="plineJsonStr"
+            :offset="offset"
+            :max-offsets="offsetCount"
+          />
         </div>
-        <div class="block mt-2">
-          <button class="basic-button" @click="copyRustTestCode">
-            Copy Test Code
-          </button>
-        </div>
-        <!-- <div class="block mt-2">
+      </Pane>
+      <Pane>
+        <div class="overflow-auto">
+          <div class="py-4 px-4">
+            <div class="max-w-md">
+              <div class="grid grid-cols-1 gap-2">
+                <InputSlider
+                  v-model="offset"
+                  :min="offsetMin"
+                  :max="offsetMax"
+                  title="Offset"
+                />
+                <InputSlider
+                  v-model="offsetCount"
+                  :min="offsetCountMin"
+                  :max="offsetCountMax"
+                  title="Offset Count"
+                />
+              </div>
+              <label class="block">
+                <span class="text-gray-700">Polyline:</span>
+                <textarea
+                  v-model="plineJsonStr"
+                  class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
+                  rows="6"
+                />
+              </label>
+            </div>
+            <div class="block mt-2">
+              <button class="basic-button" @click="copyRustTestCode">
+                Copy Test Code
+              </button>
+            </div>
+            <!-- <div class="block mt-2">
                     <label class="inline-flex items-center">
                         <input
                             v-model="fillPolylines"
@@ -57,8 +63,10 @@
                         Copy Test Code
                     </button>
                 </div> -->
-      </div>
-    </div>
+          </div>
+        </div>
+      </Pane>
+    </Splitpanes>
   </div>
 </template>
 
@@ -68,12 +76,15 @@ import PlineOffsetScene from "@/components/pline_offset/PlineOffsetScene.vue";
 import * as shapes from "@/core/shapes";
 import * as utils from "@/core/utils";
 import InputSlider from "@/components/common/InputSlider.vue";
+import { Splitpanes, Pane } from "splitpanes";
 
 export default defineComponent({
   name: "PlineOffsetDemo",
   components: {
     PlineOffsetScene,
     InputSlider,
+    Splitpanes,
+    Pane,
   },
   props: {},
   setup() {

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.2.1",
+    "splitpanes": "^3.0.4",
     "vue": "^3.0.11"
   },
   "devDependencies": {
