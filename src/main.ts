@@ -6,8 +6,5 @@ import { CavcModuleKey } from "@/types";
 
 (async () => {
   const wasm = await import("@/../wasm/cavalier_contours_web_ffi/pkg");
-  createApp(App)
-    .provide("wasm", wasm)
-    .provide(CavcModuleKey, wasm)
-    .mount("#app");
+  createApp(App).provide(CavcModuleKey, wasm).mount("#app");
 })();
