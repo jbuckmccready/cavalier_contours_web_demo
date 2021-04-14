@@ -278,7 +278,7 @@ impl Polyline {
     }
 
     #[wasm_bindgen(js_name = "testProperties")]
-    pub fn test_properties(&self) -> js_sys::Object {
+    pub fn test_properties(&self) -> JsValue {
         let result = js_sys::Object::new();
 
         // remove redundant vertexes for consistent vertex count
@@ -293,7 +293,7 @@ impl Polyline {
         js_sys::Reflect::set(&result, &"maxX".into(), &extents.max_x.into()).unwrap();
         js_sys::Reflect::set(&result, &"maxY".into(), &extents.max_y.into()).unwrap();
 
-        result
+        result.into()
     }
 
     #[wasm_bindgen(js_name = "logToConsole")]

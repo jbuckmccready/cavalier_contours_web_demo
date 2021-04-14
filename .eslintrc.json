@@ -1,88 +1,21 @@
 {
+  "root": true,
   "env": {
-    "browser": true,
-    "commonjs": true,
-    "es6": true,
     "node": true
   },
-  "plugins": [
-    "vue"
-  ],
   "extends": [
-    "eslint:recommended",
     "plugin:vue/vue3-essential",
-    "plugin:vue/vue3-recommended",
-    "plugin:vue/vue3-strongly-recommended"
+    "eslint:recommended",
+    "@vue/typescript/recommended",
+    "@vue/prettier",
+    "@vue/prettier/@typescript-eslint"
   ],
   "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "sourceType": "module"
+    "ecmaVersion": 2020
   },
   "ignorePatterns": [
     "dist",
     "node_modules",
     "wasm"
-  ],
-  "rules": {
-    "keyword-spacing": [
-      "error",
-      {
-        "overrides": {
-          "if": {
-            "after": true
-          },
-          "for": {
-            "after": true
-          },
-          "while": {
-            "after": true
-          }
-        }
-      }
-    ],
-    "no-trailing-spaces": "warn",
-    "semi": [
-      "error",
-      "always"
-    ],
-    "indent": [
-      "error",
-      4
-    ],
-    "no-const-assign": "warn",
-    "no-this-before-super": "warn",
-    "no-undef": "warn",
-    "no-unreachable": "warn",
-    "no-unused-vars": "warn",
-    "constructor-super": "warn",
-    "valid-typeof": "warn",
-    "eqeqeq": "warn",
-    "vue/script-indent": [
-      "error",
-      4,
-      {
-        "baseIndent": 1
-      }
-    ],
-    "vue/html-indent": [
-      "error",
-      4
-    ],
-    "vue/attribute-hyphenation": [
-      "error",
-      "always"
-    ]
-  },
-  "overrides": [
-    {
-      "files": [
-        "*.vue"
-      ],
-      "rules": {
-        "indent": "off"
-      }
-    }
   ]
 }
