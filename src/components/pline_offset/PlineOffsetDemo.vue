@@ -10,44 +10,20 @@
     </div>
     <div class="w-96 overflow-auto">
       <div class="py-4 px-4">
-        <div class="mt-8 max-w-md">
-          <div class="grid grid-cols-1 gap-6">
-            <label class="block">
-              <!-- <span class="text-gray-700">Vertex Count: {{ vertexCount }}</span> -->
-              <span class="text-gray-700">Offset:</span>
-              <input
-                v-model.number.lazy="offset"
-                type="number"
-                step="1.0"
-                class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-              />
-              <input
-                v-model.number="offset"
-                type="range"
-                :min="offsetMin"
-                :max="offsetMax"
-                step="1.0"
-                class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-              />
-            </label>
-            <label class="block">
-              <!-- <span class="text-gray-700">Vertex Count: {{ vertexCount }}</span> -->
-              <span class="text-gray-700">Offset Count:</span>
-              <input
-                v-model.number.lazy="offsetCount"
-                type="number"
-                step="1"
-                class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-              />
-              <input
-                v-model.number="offsetCount"
-                type="range"
-                :min="offsetCountMin"
-                :max="offsetCountMax"
-                step="1"
-                class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-              />
-            </label>
+        <div class="max-w-md">
+          <div class="grid grid-cols-1 gap-2">
+            <InputSlider
+              v-model="offset"
+              :min="offsetMin"
+              :max="offsetMax"
+              title="Offset"
+            />
+            <InputSlider
+              v-model="offsetCount"
+              :min="offsetCountMin"
+              :max="offsetCountMax"
+              title="Offset Count"
+            />
           </div>
           <label class="block">
             <span class="text-gray-700">Polyline:</span>
@@ -91,11 +67,13 @@ import { ref, unref, watch, defineComponent } from "vue";
 import PlineOffsetScene from "@/components/pline_offset/PlineOffsetScene.vue";
 import * as shapes from "@/core/shapes";
 import * as utils from "@/core/utils";
+import InputSlider from "@/components/common/InputSlider.vue";
 
 export default defineComponent({
   name: "PlineOffsetDemo",
   components: {
     PlineOffsetScene,
+    InputSlider,
   },
   props: {},
   setup() {
