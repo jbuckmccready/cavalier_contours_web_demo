@@ -15,7 +15,12 @@ import {
   defineComponent,
 } from "vue";
 
-import { CanvasScene, HIT_DELTA, COLORS } from "@/core/rendering.js";
+import {
+  CanvasScene,
+  HIT_DELTA,
+  COLORS,
+  SimpleColors,
+} from "@/core/rendering2";
 import * as shapes from "@/core/shapes";
 import {
   BooleanOp,
@@ -78,15 +83,21 @@ export default defineComponent({
       let pline1 = new wasm.Polyline(pline1Array, true);
       let pline2 = new wasm.Polyline(pline2Array, true);
       pline2.cycleVertexes(2);
-      let pline1Color = "red";
-      let pline2Color = "blue";
+      let pline1Color = SimpleColors.Red;
+      let pline2Color = SimpleColors.Blue;
       // draw vertexes
-      let drawVertexes = (vertexes: Float64Array, color: string) => {
+      let drawVertexes = (vertexes: Float64Array, color: SimpleColors) => {
         for (let i = 0; i < vertexes.length; i += 3) {
-          scene.drawScaledRectAtPoint(vertexes[i], vertexes[i + 1], HIT_DELTA, {
-            fill: true,
-            color: color,
-          });
+          scene.drawScaledRect(
+            vertexes[i],
+            vertexes[i + 1],
+            HIT_DELTA,
+            HIT_DELTA,
+            {
+              fill: true,
+              color: color,
+            }
+          );
         }
       };
 
@@ -106,11 +117,11 @@ export default defineComponent({
         };
 
         let processNegPline = (pline: Polyline) => {
-          let color = fill ? "white" : "black";
+          let color = fill ? SimpleColors.White : SimpleColors.Black;
           scene.drawCavcPolyline(pline, {
             fill: fill,
             color: color,
-            noTransparency: true,
+            // noTransparency: true,
           });
         };
 
@@ -170,7 +181,6 @@ export default defineComponent({
       //     console.log(pos.x, pos.y);
       // };
 
-      scene.connectEvents();
       canvasScene = scene;
 
       canvasScene.redrawScene();

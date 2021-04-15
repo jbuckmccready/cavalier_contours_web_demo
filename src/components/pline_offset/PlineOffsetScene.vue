@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent, ref, toRefs, unref, onMounted, watch } from "vue";
 
-import { CanvasScene, HIT_DELTA } from "@/core/rendering.js";
+import { CanvasScene, HIT_DELTA, SimpleColors } from "@/core/rendering2";
 import * as shapes from "@/core/shapes";
 // import * as shared from "@/components/pline_offset/pline_offset";
 import * as utils from "@/core/utils";
@@ -45,21 +45,27 @@ export default defineComponent({
       // draw vertexes
       let vertexes = pline1.vertexData();
       for (let i = 0; i < vertexes.length; i += 3) {
-        scene.drawScaledRectAtPoint(vertexes[i], vertexes[i + 1], HIT_DELTA, {
-          fill: true,
-          color: "black",
-        });
+        scene.drawScaledRect(
+          vertexes[i],
+          vertexes[i + 1],
+          HIT_DELTA,
+          HIT_DELTA,
+          {
+            fill: true,
+            color: SimpleColors.Black,
+          }
+        );
       }
 
       // draw polyline
-      scene.drawCavcPolyline(pline1, { color: "black" });
+      scene.drawCavcPolyline(pline1, { color: SimpleColors.Black });
 
       // draw offsets
       let maxOffsetsValue = unref(maxOffsets);
       if (maxOffsetsValue > 0) {
         let isCCWPline = pline1.area() > 0;
         let offsetValue: number = unref(offset);
-        let offsetResults = pline1.parallelOffset(offsetValue);
+        let offsetResults: Polyline[] = pline1.parallelOffset(offsetValue);
         let nextResults: Polyline[] = [];
         let offsetCount = 0;
         const maxOffsetCount = maxOffsetsValue;
@@ -70,11 +76,15 @@ export default defineComponent({
             if (pline1IsClosed) {
               let offsetIsCCW = offsetResults[i].area() > 0;
               if (isCCWPline !== offsetIsCCW) {
-                scene.drawCavcPolyline(offsetResults[i], { color: "red" });
+                scene.drawCavcPolyline(offsetResults[i], {
+                  color: SimpleColors.Red,
+                });
                 continue;
               }
             }
-            scene.drawCavcPolyline(offsetResults[i], { color: "blue" });
+            scene.drawCavcPolyline(offsetResults[i], {
+              color: SimpleColors.Blue,
+            });
             offsetCount += 1;
             offsetResults[i]
               .parallelOffset(offsetValue)
@@ -131,7 +141,6 @@ export default defineComponent({
       //     console.log(pos.x, pos.y);
       // };
 
-      scene.connectEvents();
       canvasScene = scene;
       canvasScene.redrawScene();
     }
