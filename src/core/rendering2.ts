@@ -31,14 +31,15 @@ export interface IRenderOptions {
 export class CanvasScene {
   private readonly _worldWidth: number;
   private readonly _worldHeight: number;
-  private _renderer: PIXI.Renderer;
-  private _stage: PIXI.Container;
+  private readonly _renderer: PIXI.Renderer;
+  private readonly _stage: PIXI.Container;
   private _animation: number | null;
-  private _viewport: Viewport;
-  private _originContainer: PIXI.Container;
-  private _worldHitBox: PIXI.Sprite;
-  private _mainGraphics: PIXI.Graphics;
-  private _redrawCallBack: (scene: CanvasScene) => void;
+  private readonly _viewport: Viewport;
+  private readonly _originContainer: PIXI.Container;
+  private readonly _worldHitBox: PIXI.Sprite;
+  private readonly _mainGraphics: PIXI.Graphics;
+  private readonly _cursorPosText: PIXI.Text;
+  private readonly _redrawCallBack: (scene: CanvasScene) => void;
 
   private _mouseDownPos: null | PIXI.Point;
   private _dragHandlersEngaged: boolean;
@@ -73,7 +74,6 @@ export class CanvasScene {
       screenHeight: worldHeight,
       worldWidth: worldWidth,
       worldHeight: worldHeight,
-      // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
       interaction: this._renderer.plugins.interaction,
     });
     this._viewport.clamp({ direction: "all" });
@@ -100,6 +100,12 @@ export class CanvasScene {
       worldHeight / 2
     );
     this._viewport.addChild(rootContainer);
+
+    // const mask = new PIXI.Graphics();
+    // mask.drawRect(0, 0, worldWidth, worldHeight);
+    // mask.isMask = true;
+    // this._viewport.addChild(mask);
+    // this._viewport.mask = mask;
 
     // container positioned so (0, 0) origin is at the center
     this._originContainer = new PIXI.Container();
@@ -135,6 +141,12 @@ export class CanvasScene {
         }
       })
       .on("pointermove", (event) => {
+        const currPos = event.data.getLocalPosition(this._originContainer);
+        this.updateCursorPosition(currPos);
+        // only need to render the stage (not calling redrawScene which will invoke the
+        // redrawCallBack)
+        this._renderer.render(this._stage);
+
         if (
           this.blockEventHandling ||
           !this._mouseDownPos ||
@@ -144,7 +156,6 @@ export class CanvasScene {
           return;
         }
 
-        const currPos = event.data.getLocalPosition(this._originContainer);
         this.draggingHandler(currPos);
       })
       .on("pointerup", (event) => {
@@ -170,6 +181,12 @@ export class CanvasScene {
     this._viewport.addListener("moved", () => {
       this.redrawScene();
     });
+
+    this._cursorPosText = this._stage.addChild(new PIXI.Text("(0.00, 0.00)"));
+    // position in the bottom right
+    this._cursorPosText.anchor.set(1.0, 1.0);
+    this._cursorPosText.x = worldWidth;
+    this._cursorPosText.y = worldHeight;
 
     this._animation = null;
     this.blockEventHandling = false;
@@ -354,6 +371,10 @@ export class CanvasScene {
     // y axes
     this._mainGraphics.moveTo(0, -halfHeight);
     this._mainGraphics.lineTo(0, halfHeight);
+  }
+
+  private updateCursorPosition(pos: { x: number; y: number }) {
+    this._cursorPosText.text = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
   }
 }
 

@@ -137,9 +137,6 @@ export default defineComponent({
       scene.dragReleaseHandler = () => {
         grabbedIndex = -1;
       };
-      // scene.cursorPosCallBack = pos => {
-      //     console.log(pos.x, pos.y);
-      // };
 
       canvasScene = scene;
       canvasScene.redrawScene();
