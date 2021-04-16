@@ -7,6 +7,7 @@
         >
           <PlineOffsetScene
             ref="plineOffsetSceneRef"
+            :currentDemoMode="state.currentDemoMode"
             v-model:plineJsonStr="state.plineJsonStr"
             :offset="state.offset"
             :max-offsets="state.offsetCount"
@@ -30,6 +31,7 @@
                   :max="40"
                 />
                 <InputSlider
+                  v-if="state.currentDemoMode === DemoMode.Offset"
                   title="Offset Count"
                   v-model="state.offsetCount"
                   :min="0"
@@ -118,6 +120,7 @@ export default defineComponent({
       allDemoModes,
       plineOffsetSceneRef,
       copyRustTestCode,
+      DemoMode,
     };
   },
 });

@@ -1,6 +1,6 @@
 mod utils;
 
-use cavalier_contours::polyline::PlineOffsetOptions;
+use cavalier_contours::polyline::{internal::pline_offset, PlineOffsetOptions};
 use js_sys::{Float64Array, Uint32Array};
 use wasm_bindgen::prelude::*;
 
@@ -259,6 +259,13 @@ impl Polyline {
         }
 
         result
+    }
+
+    #[wasm_bindgen(js_name = "rawOffset")]
+    pub fn raw_offset(&self, offset: f64) -> Polyline {
+        let offset_result = pline_offset::create_raw_offset_polyline(&self.0, offset, 1e-5);
+
+        Polyline(offset_result)
     }
 
     #[wasm_bindgen(js_name = "arcsToApproxLines")]

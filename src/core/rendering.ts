@@ -2,27 +2,34 @@ import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { Polyline } from "@/types";
 
-export const VERTEX_DIM = 10;
-export const HIT_DELTA = VERTEX_DIM / 2;
-export const COLORS = [
-  0xdc2626,
-  0x2563eb,
-  0x059669,
-  0xd97706,
-  0x7c3aed,
-  0xdb2777,
-  0xea580c,
-  0x65a30d,
-  0xc026d3,
-];
-
 export enum SimpleColors {
   White = 0xffffff,
   Black = 0x000000,
   Gray = 0x808080,
-  Red = 0xff0000,
-  Blue = 0x0000ff,
+  Red = 0xdc2626,
+  Blue = 0x2563eb,
+  Green = 0x059669,
+  Orange = 0xd97706,
+  Purple = 0x7c3aed,
+  Magenta = 0xdb2777,
+  BurntOrange = 0xea580c,
+  Lime = 0x65a30d,
+  Fuchsia = 0xc026d3,
 }
+
+export const VERTEX_DIM = 10;
+export const HIT_DELTA = VERTEX_DIM / 2;
+export const COLORS = [
+  SimpleColors.Red,
+  SimpleColors.Blue,
+  SimpleColors.Green,
+  SimpleColors.Orange,
+  SimpleColors.Purple,
+  SimpleColors.Magenta,
+  SimpleColors.BurntOrange,
+  SimpleColors.Lime,
+  SimpleColors.Fuchsia,
+];
 
 export interface IRenderOptions {
   color?: number;
