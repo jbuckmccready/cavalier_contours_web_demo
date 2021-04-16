@@ -19,6 +19,7 @@ export const COLORS = [
 export enum SimpleColors {
   White = 0xffffff,
   Black = 0x000000,
+  Gray = 0x808080,
   Red = 0xff0000,
   Blue = 0x0000ff,
 }
@@ -47,7 +48,7 @@ export class CanvasScene {
 
   dragBeginHandler: null | ((pt: { x: number; y: number }) => boolean);
   draggingHandler: null | ((pt: { x: number; y: number }) => void);
-  dragReleaseHandler: null | ((pt: { x: number; y: number }) => void);
+  dragReleaseHandler: null | (() => void);
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -162,6 +163,9 @@ export class CanvasScene {
         if (this._dragHandlersEngaged) {
           this._mouseDownPos = null;
           this._dragHandlersEngaged = false;
+          if (this.dragReleaseHandler) {
+            this.dragReleaseHandler();
+          }
           event.stopPropagation();
         }
       })
@@ -183,10 +187,6 @@ export class CanvasScene {
     });
 
     this._cursorPosText = this._stage.addChild(new PIXI.Text("(0.00, 0.00)"));
-    // position in the bottom right
-    this._cursorPosText.anchor.set(1.0, 1.0);
-    this._cursorPosText.x = worldWidth;
-    this._cursorPosText.y = worldHeight;
 
     this._animation = null;
     this.blockEventHandling = false;
@@ -228,7 +228,7 @@ export class CanvasScene {
     y: number,
     width: number,
     height: number,
-    options: IRenderOptions | undefined
+    options?: IRenderOptions
   ): void {
     const color = options?.color ?? SimpleColors.Black;
     const fill = options?.fill ?? false;
@@ -239,8 +239,22 @@ export class CanvasScene {
       this._mainGraphics.endFill();
     } else {
       this._mainGraphics.lineStyle(1 / this.currentScale, color);
-      this._mainGraphics.drawRect(x, y, width, height);
+      this._mainGraphics.drawRect(x - width / 2, y - height / 2, width, height);
     }
+  }
+
+  drawRectFromBounds(
+    minX: number,
+    minY: number,
+    maxX: number,
+    maxY: number,
+    options?: IRenderOptions
+  ): void {
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const x = minX + width / 2;
+    const y = minY + height / 2;
+    this.drawRect(x, y, width, height, options);
   }
 
   drawScaledRect(
@@ -248,7 +262,7 @@ export class CanvasScene {
     y: number,
     width: number,
     height: number,
-    options: IRenderOptions | undefined = undefined,
+    options?: IRenderOptions,
     minScale = 1.0
   ): void {
     const scale = Math.max(minScale, this.currentScale);
@@ -260,76 +274,6 @@ export class CanvasScene {
     const color = options?.color ?? SimpleColors.Black;
     const fill = options?.fill ?? false;
     const g = this._mainGraphics;
-
-    const radiusAndCenter = (
-      x1: number,
-      y1: number,
-      bulge1: number,
-      x2: number,
-      y2: number
-    ) => {
-      const absBulge = Math.abs(bulge1);
-      const chord = { x: x2 - x1, y: y2 - y1 };
-      const chordLength = Math.sqrt(chord.x * chord.x + chord.y * chord.y);
-      const radius = (chordLength * (absBulge * absBulge + 1)) / (4 * absBulge);
-
-      const s = (absBulge * chordLength) / 2;
-      const m = radius - s;
-      let offsetX = (-m * chord.y) / chordLength;
-      let offsetY = (m * chord.x) / chordLength;
-      if (bulge1 < 0) {
-        offsetX = -offsetX;
-        offsetY = -offsetY;
-      }
-
-      const center = {
-        x: x1 + chord.x / 2 + offsetX,
-        y: y1 + chord.y / 2 + offsetY,
-      };
-
-      return { radius, center };
-    };
-
-    // const vertexData = pline.vertexData();
-    // const drawSegment = (
-    //   x1: number,
-    //   y1: number,
-    //   bulge1: number,
-    //   x2: number,
-    //   y2: number
-    // ) => {
-    //   if (Math.abs(bulge1) > 1e-4) {
-    //     const { radius, center } = radiusAndCenter(x1, y1, bulge1, x2, y2);
-    //     const startAngle = Math.atan2(y1 - center.y, x1 - center.x);
-    //     const endAngle = Math.atan2(y2 - center.y, x2 - center.x);
-
-    //     g.arc(center.x, center.y, radius, startAngle, endAngle, bulge1 < 0);
-    //   } else {
-    //     g.lineTo(x2, y2);
-    //   }
-    // };
-    // const drawPath = () => {
-    //   g.moveTo(vertexData[0], vertexData[1]);
-    //   for (let i = 3; i < vertexData.length; i += 3) {
-    //     const x1 = vertexData[i - 3];
-    //     const y1 = vertexData[i - 2];
-    //     const bulge1 = vertexData[i - 1];
-    //     const x2 = vertexData[i];
-    //     const y2 = vertexData[i + 1];
-    //     drawSegment(x1, y1, bulge1, x2, y2);
-    //   }
-
-    //   if (isClosed) {
-    //     const ln = vertexData.length;
-    //     drawSegment(
-    //       vertexData[ln - 3],
-    //       vertexData[ln - 2],
-    //       vertexData[ln - 1],
-    //       vertexData[0],
-    //       vertexData[1]
-    //     );
-    //   }
-    // };
 
     const lineData = pline.arcsToApproxLinesData(1e-2);
     const drawPath = () => {
@@ -350,6 +294,52 @@ export class CanvasScene {
     } else {
       g.lineStyle(1 / this.currentScale, color);
       drawPath();
+    }
+  }
+
+  drawPolygon(lineData: Float64Array, options?: IRenderOptions): void {
+    const color = options?.color ?? SimpleColors.Black;
+    const fill = options?.fill ?? false;
+    const g = this._mainGraphics;
+
+    const drawPath = () => {
+      g.moveTo(lineData[0], lineData[1]);
+      for (let i = 2; i < lineData.length; i += 2) {
+        g.lineTo(lineData[i], lineData[i + 1]);
+      }
+      g.closePath();
+    };
+
+    if (fill) {
+      g.lineStyle(0);
+      g.beginFill(color);
+      drawPath();
+      g.endFill();
+    } else {
+      g.lineStyle(1 / this.currentScale, color);
+      drawPath();
+    }
+  }
+
+  drawCircle(
+    x: number,
+    y: number,
+    radius: number,
+    options?: IRenderOptions
+  ): void {
+    const color = options?.color ?? SimpleColors.Black;
+    const fill = options?.fill ?? false;
+
+    const g = this._mainGraphics;
+
+    if (fill) {
+      g.lineStyle(0);
+      g.beginFill(color);
+      g.drawCircle(x, y, radius);
+      g.endFill();
+    } else {
+      g.lineStyle(1 / this.currentScale, color);
+      g.drawCircle(x, y, radius);
     }
   }
 

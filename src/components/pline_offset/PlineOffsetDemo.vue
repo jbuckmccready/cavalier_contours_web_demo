@@ -7,9 +7,9 @@
         >
           <PlineOffsetScene
             ref="plineOffsetSceneRef"
-            v-model:plineJsonStr="plineJsonStr"
-            :offset="offset"
-            :max-offsets="offsetCount"
+            v-model:plineJsonStr="state.plineJsonStr"
+            :offset="state.offset"
+            :max-offsets="state.offsetCount"
           />
         </div>
       </Pane>
@@ -18,27 +18,25 @@
           <div class="py-4 px-4">
             <div class="max-w-md">
               <div class="grid grid-cols-1 gap-2">
-                <InputSlider
-                  v-model="offset"
-                  :min="offsetMin"
-                  :max="offsetMax"
-                  title="Offset"
+                <Selector
+                  title="Mode"
+                  :options="allDemoModes"
+                  v-model="state.currentDemoMode"
                 />
                 <InputSlider
-                  v-model="offsetCount"
-                  :min="offsetCountMin"
-                  :max="offsetCountMax"
+                  title="Offset"
+                  v-model="state.offset"
+                  :min="-40"
+                  :max="40"
+                />
+                <InputSlider
                   title="Offset Count"
+                  v-model="state.offsetCount"
+                  :min="0"
+                  :max="100"
                 />
               </div>
-              <label class="block">
-                <span class="text-gray-700">Polyline:</span>
-                <textarea
-                  v-model="plineJsonStr"
-                  class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-                  rows="6"
-                />
-              </label>
+              <PlineJsonEditor v-model="state.plineJsonStr" />
             </div>
             <div class="block mt-2">
               <button class="basic-button" @click="copyRustTestCode">
@@ -71,11 +69,17 @@
 </template>
 
 <script lang="ts">
-import { ref, unref, watch, defineComponent } from "vue";
+import { ref, unref, defineComponent, reactive } from "vue";
 import PlineOffsetScene from "@/components/pline_offset/PlineOffsetScene.vue";
 import * as shapes from "@/core/shapes";
 import * as utils from "@/core/utils";
 import InputSlider from "@/components/common/InputSlider.vue";
+import Selector from "@/components/common/Selector.vue";
+import PlineJsonEditor from "@/components/common/PlineJsonEditor.vue";
+import {
+  DemoMode,
+  allDemoModesAsStrings,
+} from "@/components/pline_offset/pline_offset";
 import { Splitpanes, Pane } from "splitpanes";
 
 export default defineComponent({
@@ -83,31 +87,24 @@ export default defineComponent({
   components: {
     PlineOffsetScene,
     InputSlider,
+    Selector,
+    PlineJsonEditor,
     Splitpanes,
     Pane,
   },
   props: {},
   setup() {
-    let offset = ref(3.0);
-    const offsetMin = -40.0;
-    const offsetMax = 40.0;
-    watch(offset, (newValue) => {
-      offset.value = Math.min(Math.max(newValue, offsetMin), offsetMax);
+    const state = reactive({
+      offset: 3.0,
+      offsetCount: 50,
+      plineJsonStr: utils.plineArrayToJsonStr(
+        shapes.createExample1PlineVertexes(10),
+        true
+      ),
+      currentDemoMode: DemoMode[DemoMode.Offset],
     });
 
-    let offsetCount = ref(50);
-    const offsetCountMin = 0;
-    const offsetCountMax = 100;
-    watch(offsetCount, (newValue) => {
-      offsetCount.value = Math.min(
-        Math.max(newValue, offsetCountMin),
-        offsetCountMax
-      );
-    });
-
-    let plineJsonStr = ref(
-      utils.plineArrayToJsonStr(shapes.createExample1PlineVertexes(10), true)
-    );
+    const allDemoModes = ref(allDemoModesAsStrings());
 
     const plineOffsetSceneRef = ref<typeof PlineOffsetScene | null>(null);
 
@@ -117,13 +114,8 @@ export default defineComponent({
     };
 
     return {
-      offset,
-      offsetMin,
-      offsetMax,
-      offsetCount,
-      offsetCountMin,
-      offsetCountMax,
-      plineJsonStr,
+      state,
+      allDemoModes,
       plineOffsetSceneRef,
       copyRustTestCode,
     };

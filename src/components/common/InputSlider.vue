@@ -3,14 +3,14 @@
     <span class="text-gray-700">{{ title }}</span>
     <input
       :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @change="inputChangeHandler($event)"
       type="number"
       step="any"
       class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
     />
     <input
       :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
+      @input="$emit('update:modelValue', parseFloat($event.target.value))"
       type="range"
       :min="min"
       :max="max"
@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, toRefs } from "vue";
 
 export default defineComponent({
   name: "InputSlider",
@@ -47,6 +47,19 @@ export default defineComponent({
       type: Number,
       default: 1.0,
     },
+  },
+  emits: ["update:modelValue"],
+  setup(props, { emit }) {
+    const { modelValue, min, max } = toRefs(props);
+    const inputChangeHandler = (e: any) => {
+      const v = e.target.value;
+      e.target.value = Math.min(Math.max(v, min.value), max.value);
+      emit("update:modelValue", parseFloat(e.target.value));
+    };
+
+    return {
+      inputChangeHandler,
+    };
   },
 });
 </script>

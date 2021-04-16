@@ -11,29 +11,14 @@
       <div class="py-4 px-4">
         <div class="mt-8 max-w-md">
           <div class="grid grid-cols-1 gap-6">
-            <label class="block">
-              <span class="text-gray-700">Boolean Op</span>
-              <select
-                v-model="currentBooleanOp"
-                class="block w-full mt-1 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-              >
-                <option v-for="mode in allBooleanOps" :key="mode">
-                  {{ mode }}
-                </option>
-              </select>
-            </label>
+            <Selector
+              title="Boolean Op"
+              :options="allBooleanOps"
+              v-model="currentBooleanOp"
+            />
           </div>
         </div>
-        <div class="block mt-2">
-          <label class="inline-flex items-center">
-            <input
-              v-model="fillPolylines"
-              type="checkbox"
-              class="rounded bg-gray-200 border-transparent focus:border-transparent focus:bg-gray-200 text-gray-700 focus:ring-1 focus:ring-offset-2 focus:ring-gray-500"
-            />
-            <span class="ml-2">Fill Polylines</span>
-          </label>
-        </div>
+        <CheckBox class="mt-2" label="Fill Polylines" v-model="fillPolylines" />
         <div class="block mt-2">
           <button class="basic-button" @click="copyRustTestCode">
             Copy Test Code
@@ -47,6 +32,8 @@
 <script lang="ts">
 import { ref, defineComponent } from "vue";
 import PlineBooleanScene from "@/components/pline_boolean/PlineBooleanScene.vue";
+import CheckBox from "@/components/common/CheckBox.vue";
+import Selector from "@/components/common/Selector.vue";
 import {
   allBooleanOpsAsStrings,
   BooleanOp,
@@ -57,6 +44,8 @@ export default defineComponent({
   name: "PlineBooleanDemo",
   components: {
     PlineBooleanScene,
+    CheckBox,
+    Selector,
   },
   props: {},
   setup() {

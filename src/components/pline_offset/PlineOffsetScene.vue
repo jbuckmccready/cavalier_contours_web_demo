@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent, ref, toRefs, unref, onMounted, watch } from "vue";
 
-import { CanvasScene, HIT_DELTA, SimpleColors } from "@/core/rendering2";
+import { CanvasScene, HIT_DELTA, SimpleColors } from "@/core/rendering";
 import * as shapes from "@/core/shapes";
 // import * as shared from "@/components/pline_offset/pline_offset";
 import * as utils from "@/core/utils";

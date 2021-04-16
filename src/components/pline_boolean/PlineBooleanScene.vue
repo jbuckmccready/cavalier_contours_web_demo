@@ -5,22 +5,9 @@
 </template>
 
 <script lang="ts">
-import {
-  ref,
-  toRefs,
-  unref,
-  onMounted,
-  watchEffect,
-  watch,
-  defineComponent,
-} from "vue";
+import { ref, toRefs, unref, onMounted, watch, defineComponent } from "vue";
 
-import {
-  CanvasScene,
-  HIT_DELTA,
-  COLORS,
-  SimpleColors,
-} from "@/core/rendering2";
+import { CanvasScene, HIT_DELTA, COLORS, SimpleColors } from "@/core/rendering";
 import * as shapes from "@/core/shapes";
 import {
   BooleanOp,
@@ -181,11 +168,6 @@ export default defineComponent({
 
       canvasScene.redrawScene();
     }
-
-    watchEffect(() =>
-      console.log("currentBooleanOp:", unref(currentBooleanOp))
-    );
-    watchEffect(() => console.log("fillPolylines:", unref(fillPolylines)));
 
     watch([currentBooleanOp, fillPolylines], () =>
       utils.valueOrThrow(canvasScene).redrawScene()

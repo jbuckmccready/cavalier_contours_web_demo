@@ -5,17 +5,9 @@
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  ref,
-  toRefs,
-  unref,
-  onMounted,
-  watchEffect,
-  watch,
-} from "vue";
+import { defineComponent, ref, toRefs, unref, onMounted, watch } from "vue";
 
-import { CanvasScene, HIT_DELTA, COLORS } from "@/core/rendering.js";
+import { CanvasScene, SimpleColors, HIT_DELTA, COLORS } from "@/core/rendering";
 import { createCirclePts, createSegAABB } from "@/core/shapes";
 import { DemoMode } from "@/components/static_aabb2d_index/static_aabb2d";
 import * as utils from "@/core/utils";
@@ -40,11 +32,19 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    neighborDistance: {
+      type: Number,
+      default: 100,
+    },
   },
   setup(props) {
-    const { currentDemoMode, vertexCount, indexNodeSize, editShape } = toRefs(
-      props
-    );
+    const {
+      currentDemoMode,
+      vertexCount,
+      indexNodeSize,
+      editShape,
+      neighborDistance,
+    } = toRefs(props);
     const canvasRef = ref<HTMLCanvasElement | null>(null);
     const wasm = utils.injectStrict(CavcModuleKey);
     let canvasScene: CanvasScene | null = null;
@@ -58,7 +58,6 @@ export default defineComponent({
 
     let neighborsCircleCenter = [0, 0];
 
-    let hitDelta = HIT_DELTA;
     let radius = 500;
     let circlePoints = createCirclePts(0, 0, radius, unref(vertexCount));
     let boxes = createSegAABB(circlePoints);
@@ -86,7 +85,7 @@ export default defineComponent({
             currentBoundIndex += 1;
             currentBound = levelBounds[currentBoundIndex];
           }
-          scene.drawRect(
+          scene.drawRectFromBounds(
             allBoxes[i],
             allBoxes[i + 1],
             allBoxes[i + 2],
@@ -95,25 +94,31 @@ export default defineComponent({
           );
         }
       } else if (unref(currentDemoMode) === DemoMode.QueryBox) {
-        scene.drawRect(queryMinX(), queryMinY(), queryMaxX(), queryMaxY(), {
-          color: "blue",
-        });
+        scene.drawRectFromBounds(
+          queryMinX(),
+          queryMinY(),
+          queryMaxX(),
+          queryMaxY(),
+          {
+            color: SimpleColors.Blue,
+          }
+        );
 
-        scene.drawScaledRectAtPoint(queryBox[0], queryBox[1], hitDelta, {
+        scene.drawScaledRect(queryBox[0], queryBox[1], HIT_DELTA, HIT_DELTA, {
           fill: true,
-          color: "blue",
+          color: SimpleColors.Blue,
         });
-        scene.drawScaledRectAtPoint(queryBox[0], queryBox[3], hitDelta, {
+        scene.drawScaledRect(queryBox[0], queryBox[3], HIT_DELTA, HIT_DELTA, {
           fill: true,
-          color: "blue",
+          color: SimpleColors.Blue,
         });
-        scene.drawScaledRectAtPoint(queryBox[2], queryBox[3], hitDelta, {
+        scene.drawScaledRect(queryBox[2], queryBox[3], HIT_DELTA, HIT_DELTA, {
           fill: true,
-          color: "blue",
+          color: SimpleColors.Blue,
         });
-        scene.drawScaledRectAtPoint(queryBox[2], queryBox[1], hitDelta, {
+        scene.drawScaledRect(queryBox[2], queryBox[1], HIT_DELTA, HIT_DELTA, {
           fill: true,
-          color: "blue",
+          color: SimpleColors.Blue,
         });
         let queryResults = index.query(
           queryMinX(),
@@ -122,23 +127,30 @@ export default defineComponent({
           queryMaxY()
         );
         for (let i = 0; i < boxes.length; i += 4) {
-          let color = "gray";
+          let color = SimpleColors.Gray;
           if (queryResults.includes(i / 4)) {
-            color = "red";
+            color = SimpleColors.Red;
           }
-          scene.drawRect(boxes[i], boxes[i + 1], boxes[i + 2], boxes[i + 3], {
-            color: color,
-          });
+          scene.drawRectFromBounds(
+            boxes[i],
+            boxes[i + 1],
+            boxes[i + 2],
+            boxes[i + 3],
+            {
+              color: color,
+            }
+          );
         }
       } else if (unref(currentDemoMode) === DemoMode.Neighbors) {
-        scene.drawScaledRectAtPoint(
+        scene.drawScaledRect(
           neighborsCircleCenter[0],
           neighborsCircleCenter[1],
-          hitDelta,
-          { fill: true, color: "blue" }
+          HIT_DELTA,
+          HIT_DELTA,
+          { fill: true, color: SimpleColors.Blue }
         );
 
-        let maxDistance = 200;
+        const maxDistance = unref(neighborDistance);
         let neighborResults = index.neighbors(
           neighborsCircleCenter[0],
           neighborsCircleCenter[1],
@@ -146,37 +158,42 @@ export default defineComponent({
           maxDistance
         );
 
-        let distCirclePts = createCirclePts(
+        scene.drawCircle(
           neighborsCircleCenter[0],
           neighborsCircleCenter[1],
-          maxDistance,
-          100
+          maxDistance
         );
-        scene.drawPolylineArray(distCirclePts);
 
         for (let i = 0; i < boxes.length; i += 4) {
-          let color = "gray";
+          let color = SimpleColors.Gray;
           let resultIdx = neighborResults.findIndex((x) => x === i / 4);
           if (resultIdx !== -1) {
-            color = "red";
+            color = SimpleColors.Red;
             let centerX = (boxes[i + 2] - boxes[i]) / 2 + boxes[i];
             let centerY = (boxes[i + 3] - boxes[i + 1]) / 2 + boxes[i + 1];
-            scene.drawText(resultIdx, centerX, centerY);
+            // scene.drawText(resultIdx, centerX, centerY);
           }
-          scene.drawRect(boxes[i], boxes[i + 1], boxes[i + 2], boxes[i + 3], {
-            color: color,
-          });
+          scene.drawRectFromBounds(
+            boxes[i],
+            boxes[i + 1],
+            boxes[i + 2],
+            boxes[i + 3],
+            {
+              color: color,
+            }
+          );
         }
       }
       index.free();
-      scene.drawPolylineArray(circlePoints);
+      scene.drawPolygon(circlePoints);
       if (unref(editShape)) {
         for (let i = 0; i < circlePoints.length - 1; i += 2) {
-          scene.drawScaledRectAtPoint(
+          scene.drawScaledRect(
             circlePoints[i],
             circlePoints[i + 1],
-            hitDelta,
-            { fill: true, color: "black" }
+            HIT_DELTA,
+            HIT_DELTA,
+            { fill: true, color: SimpleColors.Black }
           );
         }
       }
@@ -199,7 +216,7 @@ export default defineComponent({
         const grabCorner = (xIdx: number, yIdx: number) => {
           let cornerPt = { x: queryBox[xIdx], y: queryBox[yIdx] };
 
-          if (scene.scaledHitTest(pt, cornerPt, hitDelta)) {
+          if (scene.scaledHitTest(pt, cornerPt, HIT_DELTA)) {
             grabbedXIdx = xIdx;
             grabbedYIdx = yIdx;
             return true;
@@ -223,7 +240,7 @@ export default defineComponent({
             scene.scaledHitTest(
               pt,
               { x: neighborsCircleCenter[0], y: neighborsCircleCenter[1] },
-              hitDelta
+              HIT_DELTA
             )
           ) {
             isNeighborsCircleGrabbed = true;
@@ -239,7 +256,7 @@ export default defineComponent({
               scene.scaledHitTest(
                 pt,
                 { x: circlePoints[i], y: circlePoints[i + 1] },
-                hitDelta
+                HIT_DELTA
               )
             ) {
               grabbedXIdx = i;
@@ -274,29 +291,24 @@ export default defineComponent({
       };
 
       scene.dragReleaseHandler = () => {
+        console.log("released");
         grabbedXIdx = -1;
         grabbedYIdx = -1;
         isQueryBoxGrabbed = false;
         isNeighborsCircleGrabbed = false;
       };
 
-      scene.connectEvents();
       canvasScene = scene;
       canvasScene.redrawScene();
     }
-
-    watchEffect(() => console.log("currentDemoMode:", unref(currentDemoMode)));
-    watchEffect(() => console.log("vertexCount:", unref(vertexCount)));
-    watchEffect(() => console.log("indexNodeSize:", unref(indexNodeSize)));
-    watchEffect(() => console.log("editShape:", unref(editShape)));
 
     watch([vertexCount], () => {
       shapeChanged();
       utils.valueOrThrow(canvasScene).redrawScene();
     });
-    watch([currentDemoMode, indexNodeSize, editShape], () =>
-      utils.valueOrThrow(canvasScene).redrawScene()
-    );
+    watch([currentDemoMode, indexNodeSize, editShape, neighborDistance], () => {
+      utils.valueOrThrow(canvasScene).redrawScene();
+    });
 
     onMounted(() => {
       setupCanvasScene();

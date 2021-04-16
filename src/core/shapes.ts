@@ -16,7 +16,7 @@ export function createCirclePts(
   return result;
 }
 
-export function createSegAABB(segPoints: any) {
+export function createSegAABB(segPoints: Float64Array) {
   const boxes = new Float64Array(segPoints.length * 2);
   function fillBox(i: any, x1: any, y1: any, x2: any, y2: any) {
     let minX;
