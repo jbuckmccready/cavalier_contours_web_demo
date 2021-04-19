@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const path = require("path");
 

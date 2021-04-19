@@ -5,7 +5,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, unref, onMounted, watch } from "vue";
+import {
+  defineComponent,
+  ref,
+  toRefs,
+  unref,
+  onMounted,
+  watch,
+  PropType,
+} from "vue";
 
 import { CanvasScene, SimpleColors, HIT_DELTA, COLORS } from "@/core/rendering";
 import { createCirclePts, createSegAABB } from "@/core/shapes";
@@ -17,7 +25,7 @@ export default defineComponent({
   name: "StaticAABB2DIndexScene",
   props: {
     currentDemoMode: {
-      type: String,
+      type: String as PropType<DemoMode>,
       default: DemoMode.None,
     },
     vertexCount: {
@@ -72,118 +80,128 @@ export default defineComponent({
     }
 
     function drawToScene(scene: CanvasScene) {
-      let index = new wasm.StaticAABB2DIndex(boxes, unref(indexNodeSize));
+      const index = new wasm.StaticAABB2DIndex(boxes, unref(indexNodeSize));
+      const mode = unref(currentDemoMode);
+      switch (mode) {
+        case DemoMode.None:
+          break;
+        case DemoMode.IndexBoxes: {
+          const allBoxes = index.allBoxes();
+          const levelBounds = index.levelBounds();
+          let currentBoundIndex = 0;
+          let currentBound = levelBounds[0];
 
-      if (unref(currentDemoMode) === DemoMode.IndexBoxes) {
-        const allBoxes = index.allBoxes();
-        const levelBounds = index.levelBounds();
-        let currentBoundIndex = 0;
-        let currentBound = levelBounds[0];
-
-        for (let i = 0; i < allBoxes.length; i += 4) {
-          if (i === currentBound) {
-            currentBoundIndex += 1;
-            currentBound = levelBounds[currentBoundIndex];
+          for (let i = 0; i < allBoxes.length; i += 4) {
+            if (i === currentBound) {
+              currentBoundIndex += 1;
+              currentBound = levelBounds[currentBoundIndex];
+            }
+            scene.drawRectFromBounds(
+              allBoxes[i],
+              allBoxes[i + 1],
+              allBoxes[i + 2],
+              allBoxes[i + 3],
+              { color: COLORS[currentBoundIndex % COLORS.length] }
+            );
           }
-          scene.drawRectFromBounds(
-            allBoxes[i],
-            allBoxes[i + 1],
-            allBoxes[i + 2],
-            allBoxes[i + 3],
-            { color: COLORS[currentBoundIndex % COLORS.length] }
-          );
+          break;
         }
-      } else if (unref(currentDemoMode) === DemoMode.QueryBox) {
-        scene.drawRectFromBounds(
-          queryMinX(),
-          queryMinY(),
-          queryMaxX(),
-          queryMaxY(),
-          {
+        case DemoMode.QueryBox: {
+          scene.drawRectFromBounds(
+            queryMinX(),
+            queryMinY(),
+            queryMaxX(),
+            queryMaxY(),
+            {
+              color: SimpleColors.Blue,
+            }
+          );
+
+          scene.drawScaledRect(queryBox[0], queryBox[1], HIT_DELTA, HIT_DELTA, {
+            fill: true,
             color: SimpleColors.Blue,
-          }
-        );
-
-        scene.drawScaledRect(queryBox[0], queryBox[1], HIT_DELTA, HIT_DELTA, {
-          fill: true,
-          color: SimpleColors.Blue,
-        });
-        scene.drawScaledRect(queryBox[0], queryBox[3], HIT_DELTA, HIT_DELTA, {
-          fill: true,
-          color: SimpleColors.Blue,
-        });
-        scene.drawScaledRect(queryBox[2], queryBox[3], HIT_DELTA, HIT_DELTA, {
-          fill: true,
-          color: SimpleColors.Blue,
-        });
-        scene.drawScaledRect(queryBox[2], queryBox[1], HIT_DELTA, HIT_DELTA, {
-          fill: true,
-          color: SimpleColors.Blue,
-        });
-        let queryResults = index.query(
-          queryMinX(),
-          queryMinY(),
-          queryMaxX(),
-          queryMaxY()
-        );
-        for (let i = 0; i < boxes.length; i += 4) {
-          let color = SimpleColors.Gray;
-          if (queryResults.includes(i / 4)) {
-            color = SimpleColors.Red;
-          }
-          scene.drawRectFromBounds(
-            boxes[i],
-            boxes[i + 1],
-            boxes[i + 2],
-            boxes[i + 3],
-            {
-              color: color,
-            }
+          });
+          scene.drawScaledRect(queryBox[0], queryBox[3], HIT_DELTA, HIT_DELTA, {
+            fill: true,
+            color: SimpleColors.Blue,
+          });
+          scene.drawScaledRect(queryBox[2], queryBox[3], HIT_DELTA, HIT_DELTA, {
+            fill: true,
+            color: SimpleColors.Blue,
+          });
+          scene.drawScaledRect(queryBox[2], queryBox[1], HIT_DELTA, HIT_DELTA, {
+            fill: true,
+            color: SimpleColors.Blue,
+          });
+          let queryResults = index.query(
+            queryMinX(),
+            queryMinY(),
+            queryMaxX(),
+            queryMaxY()
           );
-        }
-      } else if (unref(currentDemoMode) === DemoMode.Neighbors) {
-        scene.drawScaledRect(
-          neighborsCircleCenter[0],
-          neighborsCircleCenter[1],
-          HIT_DELTA,
-          HIT_DELTA,
-          { fill: true, color: SimpleColors.Blue }
-        );
-
-        const maxDistance = unref(neighborDistance);
-        let neighborResults = index.neighbors(
-          neighborsCircleCenter[0],
-          neighborsCircleCenter[1],
-          1000,
-          maxDistance
-        );
-
-        scene.drawCircle(
-          neighborsCircleCenter[0],
-          neighborsCircleCenter[1],
-          maxDistance
-        );
-
-        for (let i = 0; i < boxes.length; i += 4) {
-          let color = SimpleColors.Gray;
-          let resultIdx = neighborResults.findIndex((x) => x === i / 4);
-          if (resultIdx !== -1) {
-            color = SimpleColors.Red;
-            let centerX = (boxes[i + 2] - boxes[i]) / 2 + boxes[i];
-            let centerY = (boxes[i + 3] - boxes[i + 1]) / 2 + boxes[i + 1];
-            // scene.drawText(resultIdx, centerX, centerY);
-          }
-          scene.drawRectFromBounds(
-            boxes[i],
-            boxes[i + 1],
-            boxes[i + 2],
-            boxes[i + 3],
-            {
-              color: color,
+          for (let i = 0; i < boxes.length; i += 4) {
+            let color = SimpleColors.Gray;
+            if (queryResults.includes(i / 4)) {
+              color = SimpleColors.Red;
             }
-          );
+            scene.drawRectFromBounds(
+              boxes[i],
+              boxes[i + 1],
+              boxes[i + 2],
+              boxes[i + 3],
+              {
+                color: color,
+              }
+            );
+          }
+
+          break;
         }
+        case DemoMode.Neighbors: {
+          scene.drawScaledRect(
+            neighborsCircleCenter[0],
+            neighborsCircleCenter[1],
+            HIT_DELTA,
+            HIT_DELTA,
+            { fill: true, color: SimpleColors.Blue }
+          );
+
+          const maxDistance = unref(neighborDistance);
+          let neighborResults = index.neighbors(
+            neighborsCircleCenter[0],
+            neighborsCircleCenter[1],
+            1000,
+            maxDistance
+          );
+
+          scene.drawCircle(
+            neighborsCircleCenter[0],
+            neighborsCircleCenter[1],
+            maxDistance
+          );
+
+          for (let i = 0; i < boxes.length; i += 4) {
+            let color = SimpleColors.Gray;
+            let resultIdx = neighborResults.findIndex((x) => x === i / 4);
+            if (resultIdx !== -1) {
+              color = SimpleColors.Red;
+            }
+            scene.drawRectFromBounds(
+              boxes[i],
+              boxes[i + 1],
+              boxes[i + 2],
+              boxes[i + 3],
+              {
+                color: color,
+              }
+            );
+          }
+          break;
+        }
+        default:
+          utils.assertExhaustive(mode);
       }
+
       index.free();
       scene.drawPolygon(circlePoints);
       if (unref(editShape)) {
@@ -291,7 +309,6 @@ export default defineComponent({
       };
 
       scene.dragReleaseHandler = () => {
-        console.log("released");
         grabbedXIdx = -1;
         grabbedYIdx = -1;
         isQueryBoxGrabbed = false;

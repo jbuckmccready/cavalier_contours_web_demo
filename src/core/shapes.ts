@@ -3,7 +3,7 @@ export function createCirclePts(
   centerY: number,
   radius: number,
   count: number
-) {
+): Float64Array {
   const result = new Float64Array(count * 2);
   for (let i = 0; i < result.length; i += 2) {
     const angle = (Math.PI * i) / count;
@@ -16,9 +16,15 @@ export function createCirclePts(
   return result;
 }
 
-export function createSegAABB(segPoints: Float64Array) {
+export function createSegAABB(segPoints: Float64Array): Float64Array {
   const boxes = new Float64Array(segPoints.length * 2);
-  function fillBox(i: any, x1: any, y1: any, x2: any, y2: any) {
+  const fillBox = (
+    i: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ) => {
     let minX;
     let minY;
     let maxX;
@@ -42,7 +48,7 @@ export function createSegAABB(segPoints: Float64Array) {
     boxes[2 * i + 1] = minY;
     boxes[2 * i + 2] = maxX;
     boxes[2 * i + 3] = maxY;
-  }
+  };
 
   for (let i = 0; i < segPoints.length - 2; i += 2) {
     const x1 = segPoints[i];
@@ -68,7 +74,7 @@ export function createRectanglePlineVertexes(
   minY: number,
   maxX: number,
   maxY: number
-) {
+): Float64Array {
   return new Float64Array([
     minX,
     minY,
@@ -89,7 +95,7 @@ export function createCirclePlineVertexes(
   centerX: number,
   centerY: number,
   radius: number
-) {
+): Float64Array {
   return new Float64Array([
     centerX - radius,
     centerY,
@@ -100,7 +106,7 @@ export function createCirclePlineVertexes(
   ]);
 }
 
-export function createExample1PlineVertexes(scale: number | undefined) {
+export function createExample1PlineVertexes(scale?: number): Float64Array {
   const scaleToApply = scale ?? 1.0;
   const result = new Float64Array([
     10,
@@ -132,6 +138,40 @@ export function createExample1PlineVertexes(scale: number | undefined) {
   for (let i = 0; i < result.length; i += 3) {
     result[i] = result[i] * scaleToApply;
     result[i + 1] = result[i + 1] * scaleToApply;
+  }
+
+  return result;
+}
+
+export function createPathologicalExample1(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  vertexCount: number,
+  bulgeMode: "cw" | "ccw" | "alternate"
+): Float64Array {
+  const result = new Float64Array(vertexCount * 3);
+  let vertexIndex = 0;
+  for (let i = 0; i < result.length; i += 3) {
+    const angle = (vertexIndex * 2 * Math.PI) / vertexCount;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    let bulge = 1;
+    switch (bulgeMode) {
+      case "cw":
+        bulge = -1;
+        break;
+      case "ccw":
+        bulge = 1;
+        break;
+      case "alternate":
+        bulge = vertexIndex % 2 === 0 ? 1 : -1;
+        break;
+    }
+    result[i] = x;
+    result[i + 1] = y;
+    result[i + 2] = bulge;
+    vertexIndex += 1;
   }
 
   return result;

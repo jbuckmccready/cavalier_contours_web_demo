@@ -1,7 +1,6 @@
 import { createApp } from "vue";
 import App from "@/App.vue";
 import "@/assets/styles/app.css";
-import "splitpanes/dist/splitpanes.css";
 import { CavcModuleKey } from "@/types";
 
 (async () => {

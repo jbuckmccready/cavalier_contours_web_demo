@@ -1,6 +1,15 @@
 mod utils;
 
-use cavalier_contours::polyline::{internal::pline_offset, PlineOffsetOptions};
+use cavalier_contours::{
+    core::math::Vector2,
+    polyline::{
+        internal::{
+            pline_intersects::all_self_intersects_as_basic,
+            pline_offset::{self, create_untrimmed_raw_offset_segs},
+        },
+        seg_arc_radius_and_center, PlineOffsetOptions,
+    },
+};
 use js_sys::{Float64Array, Uint32Array};
 use wasm_bindgen::prelude::*;
 
@@ -246,9 +255,9 @@ impl Polyline {
     }
 
     #[wasm_bindgen(js_name = "parallelOffset")]
-    pub fn parallel_offset(&self, offset: f64) -> js_sys::Array {
+    pub fn parallel_offset(&self, offset: f64, handle_self_intersects: bool) -> js_sys::Array {
         let options = PlineOffsetOptions {
-            handle_self_intersects: true,
+            handle_self_intersects,
             ..Default::default()
         };
         let offset_results = self.0.parallel_offset_opt(offset, &options);
@@ -266,6 +275,59 @@ impl Polyline {
         let offset_result = pline_offset::create_raw_offset_polyline(&self.0, offset, 1e-5);
 
         Polyline(offset_result)
+    }
+
+    #[wasm_bindgen(js_name = "rawOffsetSegs")]
+    pub fn raw_offset_segs(&self, offset: f64) -> js_sys::Array {
+        let offset_segs = create_untrimmed_raw_offset_segs(&self.0, offset);
+        let result = js_sys::Array::new();
+
+        for seg in offset_segs {
+            let seg_obj = js_sys::Object::new();
+            js_sys::Reflect::set(
+                &seg_obj,
+                &"startPoint".into(),
+                &vector2_into_jsvalue(seg.v1.pos()),
+            )
+            .unwrap();
+            js_sys::Reflect::set(
+                &seg_obj,
+                &"endPoint".into(),
+                &vector2_into_jsvalue(seg.v2.pos()),
+            )
+            .unwrap();
+            js_sys::Reflect::set(&seg_obj, &"collapsedArc".into(), &seg.collapsed_arc.into())
+                .unwrap();
+            if seg.v1.bulge_is_zero() {
+                js_sys::Reflect::set(&seg_obj, &"isArc".into(), &false.into()).unwrap();
+            } else {
+                js_sys::Reflect::set(&seg_obj, &"isArc".into(), &true.into()).unwrap();
+                let (radius, center) = seg_arc_radius_and_center(seg.v1, seg.v2);
+                js_sys::Reflect::set(&seg_obj, &"arcRadius".into(), &radius.into()).unwrap();
+                js_sys::Reflect::set(&seg_obj, &"arcCenter".into(), &vector2_into_jsvalue(center))
+                    .unwrap();
+                js_sys::Reflect::set(&seg_obj, &"isCCW".into(), &(seg.v1.bulge > 0.0).into())
+                    .unwrap();
+            }
+
+            result.push(&seg_obj.into());
+        }
+
+        result
+    }
+
+    #[wasm_bindgen(js_name = "selfIntersects")]
+    pub fn self_intersects(&self) -> js_sys::Array {
+        let result = js_sys::Array::new();
+        if self.0.is_empty() {
+            return result;
+        }
+        let aabb_index = self.0.create_approx_aabb_index().unwrap();
+        let intrs = all_self_intersects_as_basic(&self.0, &aabb_index, 1e-5);
+        for intr in intrs {
+            result.push(&vector2_into_jsvalue(intr.point));
+        }
+        result
     }
 
     #[wasm_bindgen(js_name = "arcsToApproxLines")]
@@ -317,4 +379,11 @@ fn pline_vertexes_to_data(pline: &cavc::Polyline<f64>) -> Vec<f64> {
         data.push(v.bulge);
     }
     data
+}
+
+fn vector2_into_jsvalue(v: Vector2) -> JsValue {
+    let result = js_sys::Object::new();
+    js_sys::Reflect::set(&result, &"x".into(), &v.x.into()).unwrap();
+    js_sys::Reflect::set(&result, &"y".into(), &v.y.into()).unwrap();
+    result.into()
 }

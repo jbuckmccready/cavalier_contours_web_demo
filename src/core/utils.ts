@@ -18,6 +18,13 @@ export function valueOrThrow<T>(value: T | null | undefined, msg?: string): T {
   return value;
 }
 
+export function assertExhaustive(
+  _value: never,
+  message = "Reached unexpected case in exhaustive switch"
+): never {
+  throw new Error(message);
+}
+
 export function allEnumCasesAsStrings<E>(e: E): string[] {
   return Object.keys(e).filter((k) => isNaN(Number(k)));
 }

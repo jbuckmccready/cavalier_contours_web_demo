@@ -50,11 +50,17 @@ export default defineComponent({
   },
   emits: ["update:modelValue"],
   setup(props, { emit }) {
-    const { modelValue, min, max } = toRefs(props);
-    const inputChangeHandler = (e: any) => {
-      const v = e.target.value;
-      e.target.value = Math.min(Math.max(v, min.value), max.value);
-      emit("update:modelValue", parseFloat(e.target.value));
+    const { min, max } = toRefs(props);
+    const inputChangeHandler = (e: Event) => {
+      if (!(e.target instanceof HTMLInputElement)) {
+        throw new Error("Expected input element");
+      }
+
+      e.target.valueAsNumber = Math.min(
+        Math.max(e.target.valueAsNumber, min.value),
+        max.value
+      );
+      emit("update:modelValue", e.target.valueAsNumber);
     };
 
     return {

@@ -5,28 +5,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, toRefs, unref, onMounted, watch } from "vue";
-
-import { CanvasScene, HIT_DELTA, SimpleColors } from "@/core/rendering";
-import * as shapes from "@/core/shapes";
-import { DemoMode } from "@/components/pline_offset/pline_offset";
+import {
+  defineComponent,
+  ref,
+  toRefs,
+  unref,
+  onMounted,
+  watch,
+  PropType,
+} from "vue";
+import { CanvasScene, HIT_DELTA, Point, SimpleColors } from "@/core/rendering";
+import {
+  DemoMode,
+  OffsetDemoModel,
+} from "@/components/pline_offset/pline_offset";
 import * as utils from "@/core/utils";
 import { CavcModuleKey, Polyline } from "@/types";
 
 export default defineComponent({
   name: "PlineOffsetScene",
   props: {
-    currentDemoMode: {
-      type: String,
-      default: DemoMode.Offset,
-    },
-    offset: {
-      type: Number,
-      default: 1,
-    },
-    maxOffsets: {
-      type: Number,
-      default: 1,
+    model: {
+      type: Object as PropType<OffsetDemoModel>,
+      required: true,
     },
     plineJsonStr: {
       type: String,
@@ -35,14 +36,15 @@ export default defineComponent({
   },
   emits: ["update:plineJsonStr"],
   setup(props, { emit }) {
-    const { currentDemoMode, offset, maxOffsets, plineJsonStr } = toRefs(props);
+    const { model, plineJsonStr } = toRefs(props);
     const canvasRef = ref<HTMLCanvasElement | null>(null);
     const wasm = utils.injectStrict(CavcModuleKey);
 
     let canvasScene: CanvasScene | null = null;
 
-    let pline1Array = shapes.createExample1PlineVertexes(10);
-    let pline1IsClosed = true;
+    let o = utils.jsonStrToPlineArray(unref(plineJsonStr));
+    let pline1Array = o.array;
+    let pline1IsClosed = o.isClosed;
 
     function drawToScene(scene: CanvasScene) {
       let pline1 = new wasm.Polyline(pline1Array, pline1IsClosed);
@@ -64,20 +66,23 @@ export default defineComponent({
       // draw polyline
       scene.drawCavcPolyline(pline1, { color: SimpleColors.Black });
 
-      const currentMode = unref(currentDemoMode);
-      const maxOffsetsValue = unref(maxOffsets);
-      const offsetValue = unref(offset);
+      const m = unref(model);
 
-      switch (currentMode) {
+      switch (m.type) {
         case DemoMode.Offset:
           // draw offsets
-          if (maxOffsetsValue > 0) {
+          if (m.repeatOffsetCount > 0) {
             let isCCWPline = pline1.area() > 0;
-            let offsetResults: Polyline[] = pline1.parallelOffset(offsetValue);
+            let offsetResults: Polyline[] = pline1.parallelOffset(
+              m.offset,
+              m.handleSelfIntersects
+            );
             let nextResults: Polyline[] = [];
             let offsetCount = 0;
-            const maxOffsetCount = maxOffsetsValue;
-            while (offsetResults.length !== 0 && offsetCount < maxOffsetCount) {
+            while (
+              offsetResults.length !== 0 &&
+              offsetCount < m.repeatOffsetCount
+            ) {
               for (let i = 0; i < offsetResults.length; ++i) {
                 if (pline1IsClosed) {
                   let offsetIsCCW = offsetResults[i].area() > 0;
@@ -93,7 +98,7 @@ export default defineComponent({
                 });
                 offsetCount += 1;
                 offsetResults[i]
-                  .parallelOffset(offsetValue)
+                  .parallelOffset(m.offset, m.handleSelfIntersects)
                   .forEach((o: Polyline) => nextResults.push(o));
               }
               offsetResults.forEach((p) => p.free());
@@ -105,12 +110,49 @@ export default defineComponent({
           }
           break;
         case DemoMode.RawOffset: {
-          //draw raw offset
-          let rawOffsetPline = pline1.rawOffset(offsetValue);
-          scene.drawCavcPolyline(rawOffsetPline, { color: SimpleColors.Green });
-          rawOffsetPline.free();
+          const drawRawOffset = (
+            pline: Polyline,
+            offset: number,
+            drawIntersects: boolean,
+            color: number
+          ) => {
+            let rawOffsetPline = pline.rawOffset(offset);
+            scene.drawCavcPolyline(rawOffsetPline, { color: color });
+            if (drawIntersects) {
+              const selfIntrs: Point[] = rawOffsetPline.selfIntersects();
+              for (let i = 0; i < selfIntrs.length; ++i) {
+                const p = selfIntrs[i];
+                scene.drawRect(p.x, p.y, HIT_DELTA / 2, HIT_DELTA / 2, {
+                  color: SimpleColors.Red,
+                });
+              }
+            }
+            rawOffsetPline.free();
+          };
+
+          drawRawOffset(
+            pline1,
+            m.offset,
+            m.showRawOffsetIntersects,
+            SimpleColors.Green
+          );
+
+          if (m.showDualRawOffset) {
+            drawRawOffset(
+              pline1,
+              -m.offset,
+              m.showRawOffsetIntersects,
+              SimpleColors.Purple
+            );
+          }
           break;
         }
+        case DemoMode.RawOffsetSegs: {
+          scene.drawCavcRawOffsetSegs(pline1, m.offset);
+          break;
+        }
+        default:
+          utils.assertExhaustive(m);
       }
 
       pline1.free();
@@ -158,8 +200,7 @@ export default defineComponent({
       canvasScene.redrawScene();
     }
 
-    watch([currentDemoMode, offset, maxOffsets], () => {
-      console.log("test");
+    watch(props.model, () => {
       utils.valueOrThrow(canvasScene).redrawScene();
     });
 
@@ -176,15 +217,17 @@ export default defineComponent({
     });
 
     const getRustTestCodeString = () => {
-      let offsetValue = unref(offset);
+      const m = unref(model);
+      const handleSelfIntersects =
+        m.type === DemoMode.Offset ? m.handleSelfIntersects : true;
       let pline1 = new wasm.Polyline(pline1Array, pline1IsClosed);
-      let offsetResults = pline1.parallelOffset(offsetValue);
+      let offsetResults = pline1.parallelOffset(m.offset, handleSelfIntersects);
       let inputPlineStr = utils.createPlineRustCodeStr(pline1);
       let testPropertiesStr = utils.createPlinePropertiesSetRustCodeStr(
         offsetResults
       );
 
-      let result = `(${inputPlineStr}, ${utils.toRustf64Str(offsetValue)}) =>
+      let result = `(${inputPlineStr}, ${utils.toRustf64Str(m.offset)}) =>
                     ${testPropertiesStr}`;
 
       offsetResults.forEach((r) => r.free());

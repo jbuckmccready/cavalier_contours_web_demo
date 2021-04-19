@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { valueOrThrow } from "@/core/utils";
-import { defineComponent, ref, toRefs, unref } from "vue";
+import { defineComponent, ref, unref } from "vue";
 
 export default defineComponent({
   name: "PolylineEditor",
@@ -33,8 +33,8 @@ export default defineComponent({
   setup() {
     // setup the text area to raise change event on return (use shift+enter to input new line)
     const textAreaRef = ref<HTMLTextAreaElement | null>(null);
-    const onKeyPress = (event: any) => {
-      if (event.keyCode == 13 && !event.shiftKey) {
+    const onKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         valueOrThrow(unref(textAreaRef)).dispatchEvent(new Event("change"));
       }

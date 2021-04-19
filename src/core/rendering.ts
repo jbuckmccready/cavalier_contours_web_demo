@@ -31,6 +31,26 @@ export const COLORS = [
   SimpleColors.Fuchsia,
 ];
 
+export type Point = {
+  x: number;
+  y: number;
+};
+export type CavcRawOffsetSeg =
+  | {
+      isArc: false;
+      startPoint: Point;
+      endPoint: Point;
+      collapsedArc: boolean;
+    }
+  | {
+      isArc: true;
+      startPoint: Point;
+      endPoint: Point;
+      arcRadius: number;
+      arcCenter: Point;
+      isCCW: boolean;
+    };
+
 export interface IRenderOptions {
   color?: number;
   fill?: boolean;
@@ -190,7 +210,9 @@ export class CanvasScene {
       this.redrawScene();
     });
     this._viewport.addListener("moved", () => {
-      this.redrawScene();
+      // only need to render the stage (not calling redrawScene which will invoke the
+      // redrawCallBack)
+      this._renderer.render(this._stage);
     });
 
     this._cursorPosText = this._stage.addChild(new PIXI.Text("(0.00, 0.00)"));
@@ -301,6 +323,41 @@ export class CanvasScene {
     } else {
       g.lineStyle(1 / this.currentScale, color);
       drawPath();
+    }
+  }
+
+  drawCavcRawOffsetSegs(pline: Polyline, offset: number): void {
+    const segs: CavcRawOffsetSeg[] = pline.rawOffsetSegs(offset);
+
+    const g = this._mainGraphics;
+    const getAngle = (center: Point, p: Point) => {
+      return Math.atan2(p.y - center.y, p.x - center.x);
+    };
+
+    const lineWidth = 1 / this.currentScale;
+    for (let i = 0; i < segs.length; ++i) {
+      const seg = segs[i];
+      g.moveTo(seg.startPoint.x, seg.startPoint.y);
+      if (seg.isArc) {
+        g.lineStyle(lineWidth, SimpleColors.Purple);
+        const startAngle = getAngle(seg.arcCenter, seg.startPoint);
+        const endAngle = getAngle(seg.arcCenter, seg.endPoint);
+        g.arc(
+          seg.arcCenter.x,
+          seg.arcCenter.y,
+          seg.arcRadius,
+          startAngle,
+          endAngle,
+          !seg.isCCW
+        );
+      } else {
+        if (seg.collapsedArc) {
+          g.lineStyle(lineWidth, SimpleColors.Red);
+        } else {
+          g.lineStyle(lineWidth, SimpleColors.Purple);
+        }
+        g.lineTo(seg.endPoint.x, seg.endPoint.y);
+      }
     }
   }
 
