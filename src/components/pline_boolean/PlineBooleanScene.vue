@@ -8,7 +8,6 @@
 import { ref, toRefs, unref, onMounted, watch, defineComponent } from "vue";
 
 import { CanvasScene, HIT_DELTA, COLORS, SimpleColors } from "@/core/rendering";
-import * as shapes from "@/core/shapes";
 import {
   BooleanOp,
   allBooleanOps,
@@ -27,18 +26,29 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    pline1JsonStr: {
+      type: String,
+      default: "",
+    },
+    pline2JsonStr: {
+      type: String,
+      default: "",
+    },
   },
-  setup(props) {
-    const { currentBooleanOp, fillPolylines } = toRefs(props);
+  setup(props, { emit }) {
+    const {
+      currentBooleanOp,
+      fillPolylines,
+      pline1JsonStr,
+      pline2JsonStr,
+    } = toRefs(props);
     const canvasRef = ref<HTMLCanvasElement | null>(null);
     const wasm = utils.injectStrict(CavcModuleKey);
     let canvasScene: CanvasScene | null = null;
 
-    let pline1Array = shapes.createExample1PlineVertexes(10);
-    pline1Array[3] = 3;
-    pline1Array[4] = 10;
+    let pline1Array = utils.jsonStrToPlineArray(unref(pline1JsonStr)).array;
 
-    let pline2Array = shapes.createExample1PlineVertexes(10);
+    let pline2Array = utils.jsonStrToPlineArray(unref(pline2JsonStr)).array;
 
     // helper function to perform boolean operation between two polylines, visit all results
     // and free/clean up memory
@@ -125,16 +135,16 @@ export default defineComponent({
       canvas.height = 1000;
 
       let grabbedIndex = -1;
-      let grabbedPlineArr = pline1Array;
+      let isPline1Grabbed = true;
 
       let scene = new CanvasScene(canvas, drawToScene);
 
       scene.dragBeginHandler = (pt: { x: number; y: number }) => {
-        let tryGrabPline = (plineArr: Float64Array) => {
+        let tryGrabPline = (plineArr: Float64Array, isPline1: boolean) => {
           for (let i = 0; i < plineArr.length; i += 3) {
             let vertexPt = { x: plineArr[i], y: plineArr[i + 1] };
             if (scene.scaledHitTest(pt, vertexPt, HIT_DELTA)) {
-              grabbedPlineArr = plineArr;
+              isPline1Grabbed = isPline1;
               grabbedIndex = i;
               return true;
             }
@@ -143,7 +153,10 @@ export default defineComponent({
           return false;
         };
 
-        if (tryGrabPline(pline1Array) || tryGrabPline(pline2Array)) {
+        if (
+          tryGrabPline(pline1Array, true) ||
+          tryGrabPline(pline2Array, false)
+        ) {
           return true;
         }
 
@@ -155,9 +168,25 @@ export default defineComponent({
           return;
         }
 
+        let grabbedPlineArr = pline1Array;
+        if (!isPline1Grabbed) {
+          grabbedPlineArr = pline2Array;
+        }
         grabbedPlineArr[grabbedIndex] = pt.x;
         grabbedPlineArr[grabbedIndex + 1] = pt.y;
-        scene.redrawScene();
+
+        if (isPline1Grabbed) {
+          emit(
+            "update:pline1JsonStr",
+            utils.plineArrayToJsonStr(pline1Array, true)
+          );
+        } else {
+          emit(
+            "update:pline2JsonStr",
+            utils.plineArrayToJsonStr(pline2Array, true)
+          );
+        }
+        // scene will be redrawn due to jsonStr update
       };
 
       scene.dragReleaseHandler = () => {
@@ -172,6 +201,19 @@ export default defineComponent({
     watch([currentBooleanOp, fillPolylines], () =>
       utils.valueOrThrow(canvasScene).redrawScene()
     );
+
+    watch(pline1JsonStr, () => {
+      let v = unref(pline1JsonStr);
+      let o = utils.jsonStrToPlineArray(v);
+      pline1Array = o.array;
+      utils.valueOrThrow(canvasScene).redrawScene();
+    });
+    watch(pline2JsonStr, () => {
+      let v = unref(pline2JsonStr);
+      let o = utils.jsonStrToPlineArray(v);
+      pline2Array = o.array;
+      utils.valueOrThrow(canvasScene).redrawScene();
+    });
 
     onMounted(() => {
       setupCanvasScene();
