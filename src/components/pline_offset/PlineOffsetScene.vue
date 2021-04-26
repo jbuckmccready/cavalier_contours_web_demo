@@ -96,11 +96,11 @@ export default defineComponent({
                 scene.drawCavcPolyline(offsetResults[i], {
                   color: SimpleColors.Blue,
                 });
-                offsetCount += 1;
                 offsetResults[i]
                   .parallelOffset(m.offset, m.handleSelfIntersects)
                   .forEach((o: Polyline) => nextResults.push(o));
               }
+              offsetCount += 1;
               offsetResults.forEach((p) => p.free());
               offsetResults = nextResults;
               nextResults = [];
