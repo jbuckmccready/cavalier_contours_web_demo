@@ -15,7 +15,7 @@ checksum = "63396b8a4b9de3f4fdfb320ab6080762242f66a8ef174c49d8e19b674db4cdbe"
 [[package]]
 name = "cavalier_contours"
 version = "0.1.0"
-source = "git+https://github.com/jbuckmccready/cavalier_contours#32fd2c88a4575225cf55fbaa81c58a7f5183b107"
+source = "git+https://github.com/jbuckmccready/cavalier_contours#1fcb946eae0ac7e983fe25f2ea9d0ef16d0fc58d"
 dependencies = [
  "num-traits",
  "static_aabb2d_index",
@@ -122,9 +122,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.69"
+version = "1.0.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48fe99c6bd8b1cc636890bcc071842de909d902c81ac7dab53ba33c421ab8ffb"
+checksum = "ad184cc9470f9117b2ac6817bfe297307418819ba40552f9b3846f05c33d5373"
 dependencies = [
  "proc-macro2",
  "quote",

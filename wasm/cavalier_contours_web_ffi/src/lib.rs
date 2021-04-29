@@ -148,6 +148,11 @@ impl Polyline {
         self.0.clear()
     }
 
+    #[wasm_bindgen(getter = length)]
+    pub fn length(&self) -> usize {
+        self.0.len()
+    }
+
     #[wasm_bindgen(js_name = "cycleVertexes")]
     pub fn cycle_vertexes(&mut self, count: usize) {
         assert!(self.0.is_closed());
@@ -204,12 +209,12 @@ impl Polyline {
         let boolean_result = self.0.boolean(&other.0, op);
         let pos_plines = js_sys::Array::new();
         for pp in boolean_result.pos_plines {
-            pos_plines.push(&JsValue::from(Polyline(pp)));
+            pos_plines.push(&JsValue::from(Polyline(pp.pline)));
         }
 
         let neg_plines = js_sys::Array::new();
         for np in boolean_result.neg_plines {
-            neg_plines.push(&JsValue::from(Polyline(np)));
+            neg_plines.push(&JsValue::from(Polyline(np.pline)));
         }
 
         let result = js_sys::Object::new();
