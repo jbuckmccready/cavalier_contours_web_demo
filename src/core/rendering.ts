@@ -215,7 +215,7 @@ export class CanvasScene {
       this._renderer.render(this._stage);
     });
 
-    this._cursorPosText = this._stage.addChild(new PIXI.Text("(0.00, 0.00)"));
+    this._cursorPosText = this._stage.addChild(new PIXI.Text("(0.000, 0.000)"));
 
     this._animation = null;
     this.blockEventHandling = false;
@@ -428,7 +428,7 @@ export class CanvasScene {
   }
 
   private updateCursorPosition(pos: { x: number; y: number }) {
-    this._cursorPosText.text = `(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`;
+    this._cursorPosText.text = `(${pos.x.toFixed(3)}, ${pos.y.toFixed(3)})`;
   }
 }
 

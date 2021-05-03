@@ -15,7 +15,7 @@ checksum = "63396b8a4b9de3f4fdfb320ab6080762242f66a8ef174c49d8e19b674db4cdbe"
 [[package]]
 name = "cavalier_contours"
 version = "0.1.0"
-source = "git+https://github.com/jbuckmccready/cavalier_contours#1fcb946eae0ac7e983fe25f2ea9d0ef16d0fc58d"
+source = "git+https://github.com/jbuckmccready/cavalier_contours#05e55cb9a21b35b974b79543d6a0c5dd7f0f83cd"
 dependencies = [
  "num-traits",
  "static_aabb2d_index",
@@ -133,9 +133,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-xid"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7fe0bb3479651439c9112f72b6c505038574c9fbb575ed1bf3b797fa39dd564"
+checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "wasm-bindgen"

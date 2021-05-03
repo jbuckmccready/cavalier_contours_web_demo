@@ -122,7 +122,8 @@ export default defineComponent({
               const selfIntrs: Point[] = rawOffsetPline.selfIntersects();
               for (let i = 0; i < selfIntrs.length; ++i) {
                 const p = selfIntrs[i];
-                scene.drawRect(p.x, p.y, HIT_DELTA / 2, HIT_DELTA / 2, {
+                scene.drawScaledRect(p.x, p.y, HIT_DELTA, HIT_DELTA, {
+                  fill: true,
                   color: SimpleColors.Red,
                 });
               }
