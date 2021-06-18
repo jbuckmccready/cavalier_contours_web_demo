@@ -9,6 +9,7 @@ use cavalier_contours::{
         },
         seg_arc_radius_and_center, PlineOffsetOptions,
     },
+    static_aabb2d_index::Control,
 };
 use js_sys::{Float64Array, Uint32Array};
 use wasm_bindgen::prelude::*;
@@ -108,9 +109,14 @@ impl StaticAABB2DIndex {
             if dist < d {
                 result.push(i);
                 count += 1;
-                return count < max_results;
+                if count < max_results {
+                    Control::Continue
+                } else {
+                    Control::Break(())
+                }
+            } else {
+                Control::Break(())
             }
-            false
         };
 
         self.0.visit_neighbors(x, y, &mut visitor);
