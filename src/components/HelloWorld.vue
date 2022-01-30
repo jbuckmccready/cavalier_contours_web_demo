@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
 defineProps({
-  msg: String
-})
+  msg: {
+    type: String,
+    default: ""
+  },
+});
 
-const count = ref(0)
+const count = ref(0);
 </script>
 
 <template>

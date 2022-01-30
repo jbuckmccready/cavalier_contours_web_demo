@@ -5,7 +5,9 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "wasm": "wasm-pack build ./cavalier_contours_web_ffi --target web"
+    "wasm": "wasm-pack build ./cavalier_contours_web_ffi --target web",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
+    "format": "prettier . --ignore-path .gitignore --write"
   },
   "dependencies": {
     "typescript": "^4.5.5",
@@ -14,10 +16,14 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.0.0",
     "autoprefixer": "^10.4.2",
+    "eslint": "^8.8.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-vue": "^8.4.0",
     "postcss": "^8.4.5",
+    "prettier": "^2.5.1",
     "tailwindcss": "^3.0.18",
     "vite": "^2.7.2",
-    "vue-tsc": "^0.31.1",
-    "vite-plugin-wasm-pack": "^0.1.9"
+    "vite-plugin-wasm-pack": "^0.1.9",
+    "vue-tsc": "^0.31.1"
   }
 }
