@@ -14,6 +14,7 @@ const links = [
       >
       Rust library.
     </p>
+    <p>Use the navigation buttons at the top to view different demos.</p>
     <h3 class="mt-8">Links</h3>
     <ul>
       <li v-for="([name, link], i) in links" :key="i">

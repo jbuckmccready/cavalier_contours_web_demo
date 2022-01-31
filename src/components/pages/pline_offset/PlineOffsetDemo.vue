@@ -6,6 +6,7 @@ import InputSlider from "@/components/common/InputSlider.vue";
 import Selector from "@/components/common/Selector.vue";
 import Button from "@/components/common/Button.vue";
 import PlineJsonEditor from "@/components/common/PlineJsonEditor.vue";
+import ControlsSidePane from "@/components/common/ControlsSidePane.vue";
 import * as shapes from "@/core/shapes";
 import * as utils from "@/core/utils";
 import {
@@ -46,40 +47,34 @@ const copyRustTestCode = () => {
         :model="demoModel"
       />
     </div>
-    <div class="overflow-auto w-1/4">
-      <div class="py-4 px-4">
-        <div class="max-w-md">
-          <div class="grid grid-cols-1 gap-2">
-            <Selector v-model="demoModel.type" label="Mode" :options="allDemoModes" />
-            <InputSlider v-model="demoModel.offset" label="Offset" :min="-100" :max="100" />
-            <InputSlider
-              v-if="demoModel.type === DemoMode.Offset"
-              v-model="demoModel.repeatOffsetCount"
-              label="Offset Count"
-              :min="0"
-              :max="100"
-            />
-            <CheckBox
-              v-if="demoModel.type === DemoMode.Offset"
-              v-model="demoModel.handleSelfIntersects"
-              label="Handle Self Intersects"
-            />
-            <CheckBox
-              v-if="demoModel.type === DemoMode.RawOffset"
-              v-model="demoModel.showDualRawOffset"
-              label="Show Dual Raw Offset"
-            />
-            <CheckBox
-              v-if="demoModel.type === DemoMode.RawOffset"
-              v-model="demoModel.showRawOffsetIntersects"
-              label="Show Self Intersects"
-            />
-          </div>
-          <PlineJsonEditor v-model="plineJsonStr" />
-        </div>
-        <Button @click="copyRustTestCode">Copy Test Code</Button>
-      </div>
-    </div>
+    <ControlsSidePane>
+      <Selector v-model="demoModel.type" label="Mode" :options="allDemoModes" />
+      <InputSlider v-model="demoModel.offset" label="Offset" :min="-100" :max="100" />
+      <InputSlider
+        v-if="demoModel.type === DemoMode.Offset"
+        v-model="demoModel.repeatOffsetCount"
+        label="Offset Count"
+        :min="0"
+        :max="100"
+      />
+      <CheckBox
+        v-if="demoModel.type === DemoMode.Offset"
+        v-model="demoModel.handleSelfIntersects"
+        label="Handle Self Intersects"
+      />
+      <CheckBox
+        v-if="demoModel.type === DemoMode.RawOffset"
+        v-model="demoModel.showDualRawOffset"
+        label="Show Dual Raw Offset"
+      />
+      <CheckBox
+        v-if="demoModel.type === DemoMode.RawOffset"
+        v-model="demoModel.showRawOffsetIntersects"
+        label="Show Self Intersects"
+      />
+      <PlineJsonEditor v-model="plineJsonStr" />
+      <Button @click="copyRustTestCode">Copy Test Code</Button>
+    </ControlsSidePane>
   </div>
 </template>
 

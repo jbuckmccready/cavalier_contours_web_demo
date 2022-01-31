@@ -5,6 +5,7 @@ import PlineBooleanScene from "@/components/pages/pline_boolean/PlineBooleanScen
 import CheckBox from "@/components/common/CheckBox.vue";
 import Selector from "@/components/common/Selector.vue";
 import PlineJsonEditor from "@/components/common/PlineJsonEditor.vue";
+import ControlsSidePane from "@/components/common/ControlsSidePane.vue";
 import { allBooleanOpsAsStrings, BooleanOp } from "@/components/pages/pline_boolean/pline_boolean";
 import * as utils from "@/core/utils";
 import Button from "../../common/Button.vue";
@@ -38,18 +39,12 @@ const copyRustTestCode = () => {
         :fill-polylines="fillPolylines"
       />
     </div>
-    <div class="overflow-auto w-1/4">
-      <div class="py-4 px-4">
-        <div class="mt-8 max-w-md">
-          <div class="grid grid-cols-1 gap-6">
-            <Selector v-model="currentBooleanOp" title="Boolean Op" :options="allBooleanOps" />
-          </div>
-        </div>
-        <CheckBox v-model="fillPolylines" class="mt-2" label="Fill Polylines" />
-        <PlineJsonEditor v-model="pline1JsonStr" title="Polyline 1" />
-        <PlineJsonEditor v-model="pline2JsonStr" title="Polyline 2" />
-        <Button @click="copyRustTestCode">Copy Test Code</Button>
-      </div>
-    </div>
+    <ControlsSidePane>
+      <Selector v-model="currentBooleanOp" label="Boolean Op" :options="allBooleanOps" />
+      <CheckBox v-model="fillPolylines" label="Fill Polylines" />
+      <PlineJsonEditor v-model="pline1JsonStr" label="Polyline 1" />
+      <PlineJsonEditor v-model="pline2JsonStr" label="Polyline 2" />
+      <Button @click="copyRustTestCode">Copy Test Code</Button>
+    </ControlsSidePane>
   </div>
 </template>

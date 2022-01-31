@@ -31,7 +31,7 @@ const onKeyPress = (event: KeyboardEvent) => {
     <span class="text-gray-700">{{ label }}</span>
     <textarea
       ref="textAreaRef"
-      class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
+      class="block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
       rows="6"
       :value="modelValue"
       @change="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"

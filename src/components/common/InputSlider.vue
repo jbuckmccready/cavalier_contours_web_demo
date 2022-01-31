@@ -68,10 +68,22 @@ const valueChangeHandler = (e: Event) => {
       :min="min"
       :max="max"
       :step="step"
-      class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
+      class="slider mt-0.5 block w-full rounded-md bg-gray-100 border-transparent focus:bg-white focus:border-gray-600 border"
       @input="valueChangeHandler"
     />
   </div>
 </template>
 
-<style></style>
+<style scoped>
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  @apply bg-primary-700 w-4 h-4;
+}
+.slider::-moz-range-thumb {
+  @apply bg-gray-600 w-3 h-4 border-black border;
+}
+</style>

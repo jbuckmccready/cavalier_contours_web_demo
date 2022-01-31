@@ -5,18 +5,14 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="block mt-2">
-    <button class="basic-button" @click="$emit('click')">
+  <div class="block">
+    <button
+      class="p-2 rounded-md bg-gray-200 hover:bg-gray-300 active:bg-gray-400 border border-transparent active:border-gray-600 focus:border-gray-600"
+      @click="$emit('click')"
+    >
       <slot></slot>
     </button>
   </div>
 </template>
 
-<style scoped>
-.basic-button {
-  @apply bg-gray-200 p-2;
-}
-.basic-button:hover {
-  @apply bg-gray-600;
-}
-</style>
+<style scoped></style>

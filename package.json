@@ -10,6 +10,7 @@
     "format": "prettier . --ignore-path .gitignore --write"
   },
   "dependencies": {
+    "@tailwindcss/forms": "^0.4.0",
     "pixi-viewport": "^4.34.4",
     "pixi.js": "^6.2.2",
     "vue": "^3.2.25"

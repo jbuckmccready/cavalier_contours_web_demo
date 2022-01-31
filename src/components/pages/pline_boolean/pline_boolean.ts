@@ -70,20 +70,21 @@ export function drawBooleanScene(
   drawVertexes(pline1.vertexData(), pline1Color);
   drawVertexes(pline2.vertexData(), pline2Color);
   // draw polylines/boolean result
+  const alpha = 0.7;
   if (op === BooleanOp.None) {
-    scene.drawCavcPolyline(pline1, { color: pline1Color, fill: fill, alpha: 0.7 });
-    scene.drawCavcPolyline(pline2, { color: pline2Color, fill: fill, alpha: 0.7 });
+    scene.drawCavcPolyline(pline1, { color: pline1Color, fill, alpha });
+    scene.drawCavcPolyline(pline2, { color: pline2Color, fill, alpha });
   } else {
     const processPosPline = (pline: Polyline, i: number) => {
       const color = COLORS[i % COLORS.length];
-      scene.drawCavcPolyline(pline, { fill: fill, color: color });
+      scene.drawCavcPolyline(pline, { fill, color, alpha });
     };
     const processNegPline = (pline: Polyline) => {
       const color = fill ? SimpleColors.White : SimpleColors.Black;
       scene.drawCavcPolyline(pline, {
-        fill: fill,
-        color: color,
-        // noTransparency: true,
+        fill,
+        color,
+        alpha,
       });
     };
     visitBoolean(pline1, pline2, op, processPosPline, processNegPline);
