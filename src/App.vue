@@ -1,22 +1,52 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from "./components/HelloWorld.vue";
+import { ref } from "vue";
+import NavButton from "@/components/common/NavButton.vue";
+import AboutPage from "@/components/pages/AboutPage.vue";
+import PlineOffsetDemo from "@/components/pages/pline_offset/PlineOffsetDemo.vue";
+import HelloWorld from "@/components/pages/HelloWorld.vue";
+
+const pages = [
+  ["About", AboutPage],
+  ["Polyline Offset", PlineOffsetDemo],
+  ["Hello World", HelloWorld],
+];
+const selectedPageIndex = ref(0);
 </script>
 
 <template>
-  <img alt="Vue logo" class="block ml-auto mr-auto" src="./assets/logo.png" />
-  <HelloWorld msg="Hello Vue 3 + Vite" />
-  <h1 class="text-3xl font-bold underline">Hello world!</h1>
+  <!-- Page navigation bar-->
+  <div class="h-screen w-screen flex flex-col">
+    <nav class="bg-primary-800 h-full w-full flex-1">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <div class="hidden md:block">
+              <div class="ml-10 flex items-baseline space-x-4">
+                <NavButton
+                  v-for="([pageName, _], index) in pages"
+                  :key="index"
+                  :is-active="selectedPageIndex === index"
+                  @click="selectedPageIndex = index"
+                >
+                  {{ pageName }}
+                </NavButton>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main page area-->
+    <div class="w-full h-full min-h-0">
+      <!-- Cache inactive pages -->
+      <!-- <keep-alive> -->
+      <component :is="pages[selectedPageIndex][1]" v-bind="pages[selectedPageIndex][2]" />
+      <!-- </keep-alive> -->
+    </div>
+  </div>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style></style>
