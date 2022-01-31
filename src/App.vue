@@ -5,12 +5,14 @@ import { ref } from "vue";
 import NavButton from "@/components/common/NavButton.vue";
 import AboutPage from "@/components/pages/AboutPage.vue";
 import PlineOffsetDemo from "@/components/pages/pline_offset/PlineOffsetDemo.vue";
-import HelloWorld from "@/components/pages/HelloWorld.vue";
+import PlineBooleanDemo from "@/components/pages/pline_boolean/PlineBooleanDemo.vue";
+import StaticAABB2DIndexDemo from "@/components/pages/static_aabb2d_index/StaticAABB2DIndexDemo.vue";
 
 const pages = [
   ["About", AboutPage],
   ["Polyline Offset", PlineOffsetDemo],
-  ["Hello World", HelloWorld],
+  ["Polyline Boolean", PlineBooleanDemo],
+  ["Static AABB Index", StaticAABB2DIndexDemo],
 ];
 const selectedPageIndex = ref(0);
 </script>

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, unref, watch, PropType } from "vue";
 import { HIT_DELTA, Point, SceneRenderer } from "@/components/canvas_scene/scene_renderer";
+import * as utils from "@/core/utils";
+import CanvasScene from "@/components/canvas_scene/CanvasScene.vue";
+import { Polyline } from "cavalier_contours_web_ffi";
 import {
   DemoMode,
   drawOffsetScene,
   OffsetDemoModel,
 } from "@/components/pages/pline_offset/pline_offset";
-import * as utils from "@/core/utils";
-import CanvasScene from "@/components/canvas_scene/CanvasScene.vue";
-import { Polyline } from "cavalier_contours_web_ffi";
 
 const props = defineProps({
   model: {
@@ -30,8 +30,8 @@ let o = utils.jsonStrToPlineArray(props.plineJsonStr);
 let pline1Array = o.array;
 let pline1IsClosed = o.isClosed;
 
-function drawToScene(scene: SceneRenderer) {
-  drawOffsetScene(scene, pline1Array, pline1IsClosed, props.model);
+function drawToScene(renderer: SceneRenderer) {
+  drawOffsetScene(renderer, pline1Array, pline1IsClosed, props.model);
 }
 
 let grabbedIndex = -1;
