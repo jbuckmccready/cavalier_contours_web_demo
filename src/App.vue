@@ -42,9 +42,9 @@ const selectedPageIndex = ref(0);
     <!-- Main page area-->
     <div class="w-full h-full min-h-0">
       <!-- Cache inactive pages -->
-      <!-- <keep-alive> -->
-      <component :is="pages[selectedPageIndex][1]" v-bind="pages[selectedPageIndex][2]" />
-      <!-- </keep-alive> -->
+      <keep-alive>
+        <component :is="pages[selectedPageIndex][1]" v-bind="pages[selectedPageIndex][2]" />
+      </keep-alive>
     </div>
   </div>
 </template>

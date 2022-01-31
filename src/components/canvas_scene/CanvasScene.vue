@@ -12,19 +12,38 @@ const props = defineProps({
 
 const emit = defineEmits<{
   (event: "rendering", renderer: SceneRenderer): void;
+  (
+    event: "dragBegin",
+    payload: { pt: { x: number; y: number }; renderer: SceneRenderer; handled: boolean }
+  ): void;
+  (event: "dragging", payload: { pt: { x: number; y: number }; renderer: SceneRenderer }): void;
+  (event: "dragRelease", renderer: SceneRenderer): void;
 }>();
 
-const canvasRef = ref<HTMLCanvasElement | null>(null);
+const canvasRef = ref<HTMLCanvasElement>();
 
-let sceneRenderer: SceneRenderer | null = null;
+let sceneRenderer: SceneRenderer | undefined = undefined;
 
 onMounted(() => {
-  console.log("scene mounted");
   const canvas = utils.valueOrThrow(unref(canvasRef));
 
   sceneRenderer = new SceneRenderer(canvas, (renderer) => {
     emit("rendering", renderer);
   });
+
+  sceneRenderer.dragBeginHandler = (pt) => {
+    let payload = { pt, renderer: utils.valueOrThrow(sceneRenderer), handled: false };
+    emit("dragBegin", payload);
+    return payload.handled;
+  };
+
+  sceneRenderer.draggingHandler = (pt) => {
+    emit("dragging", { pt, renderer: utils.valueOrThrow(sceneRenderer) });
+  };
+
+  sceneRenderer.dragReleaseHandler = () => {
+    emit("dragRelease", utils.valueOrThrow(sceneRenderer));
+  };
 
   if (props.resizeToParent) {
     resizeScene();
@@ -34,12 +53,10 @@ onMounted(() => {
 
 const resizeScene = () => {
   const canvas = unref(canvasRef);
-  console.log("resizeScene called");
-  if (canvas === null || sceneRenderer === null) {
+  if (canvas === undefined || sceneRenderer === undefined) {
     return;
   }
 
-  console.log("resizing scene");
   if (canvas.parentNode?.ELEMENT_NODE !== 0) {
     let container = (canvas.parentNode as HTMLElement).getBoundingClientRect();
     sceneRenderer.resize(container.width, container.height);
@@ -49,7 +66,6 @@ const resizeScene = () => {
 watch(
   () => props.resizeToParent,
   () => {
-    console.log("resizeToParent changed:", props.resizeToParent);
     if (props.resizeToParent) {
       window.addEventListener("resize", resizeScene);
     } else {
@@ -59,8 +75,18 @@ watch(
 );
 
 onUnmounted(() => {
-  console.log("scene unmounted");
   window.removeEventListener("resize", resizeScene);
+});
+
+const requestRender = () => {
+  if (sceneRenderer === undefined) {
+    return;
+  }
+  sceneRenderer.redrawScene();
+};
+
+defineExpose({
+  requestRender,
 });
 </script>
 
