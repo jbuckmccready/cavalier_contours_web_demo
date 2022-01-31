@@ -49,6 +49,8 @@ onMounted(() => {
     resizeScene();
     window.addEventListener("resize", resizeScene);
   }
+
+  sceneRenderer.center();
 });
 
 const resizeScene = () => {

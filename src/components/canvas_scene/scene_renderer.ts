@@ -54,6 +54,7 @@ export type CavcRawOffsetSeg =
 export interface IRenderOptions {
   color?: number;
   fill?: boolean;
+  alpha?: number;
 }
 
 export class SceneRenderer {
@@ -253,6 +254,7 @@ export class SceneRenderer {
     this._animation = requestAnimationFrame(() => {
       this._animation = null;
       this._mainGraphics.clear();
+      this._mainGraphics.removeChildren(0, this._mainGraphics.children.length);
       this.drawAxesLines();
       this._drawToScene(this);
       this._renderer.render(this._stage);
@@ -262,14 +264,15 @@ export class SceneRenderer {
   drawRect(x: number, y: number, width: number, height: number, options?: IRenderOptions): void {
     const color = options?.color ?? SimpleColors.Black;
     const fill = options?.fill ?? false;
+    const g = this.getDrawingGraphics(options);
     if (fill) {
-      this._mainGraphics.lineStyle(0);
-      this._mainGraphics.beginFill(color);
-      this._mainGraphics.drawRect(x - width / 2, y - height / 2, width, height);
-      this._mainGraphics.endFill();
+      g.lineStyle(0);
+      g.beginFill(color);
+      g.drawRect(x - width / 2, y - height / 2, width, height);
+      g.endFill();
     } else {
-      this._mainGraphics.lineStyle(1 / this.currentScale, color);
-      this._mainGraphics.drawRect(x - width / 2, y - height / 2, width, height);
+      g.lineStyle(1 / this.currentScale, color);
+      g.drawRect(x - width / 2, y - height / 2, width, height);
     }
   }
 
@@ -298,11 +301,11 @@ export class SceneRenderer {
     this.drawRect(x, y, width / scale, height / scale, options);
   }
 
-  drawCavcPolyline(pline: Polyline, options: IRenderOptions | undefined): void {
+  drawCavcPolyline(pline: Polyline, options?: IRenderOptions): void {
     const isClosed = pline.isClosed;
     const color = options?.color ?? SimpleColors.Black;
     const fill = options?.fill ?? false;
-    const g = this._mainGraphics;
+    const g = this.getDrawingGraphics(options);
 
     const lineData = pline.arcsToApproxLinesData(1e-2);
     const drawPath = () => {
@@ -357,7 +360,7 @@ export class SceneRenderer {
   drawPolygon(lineData: Float64Array, options?: IRenderOptions): void {
     const color = options?.color ?? SimpleColors.Black;
     const fill = options?.fill ?? false;
-    const g = this._mainGraphics;
+    const g = this.getDrawingGraphics(options);
 
     const drawPath = () => {
       g.moveTo(lineData[0], lineData[1]);
@@ -382,7 +385,7 @@ export class SceneRenderer {
     const color = options?.color ?? SimpleColors.Black;
     const fill = options?.fill ?? false;
 
-    const g = this._mainGraphics;
+    const g = this.getDrawingGraphics(options);
 
     if (fill) {
       g.lineStyle(0);
@@ -393,6 +396,14 @@ export class SceneRenderer {
       g.lineStyle(1 / this.currentScale, color);
       g.drawCircle(x, y, radius);
     }
+  }
+
+  private getDrawingGraphics(options?: IRenderOptions): PIXI.Graphics {
+    // have to spawn child graphics object for alpha blending between graphics
+    const alpha = Math.min(Math.max(options?.alpha ?? 1.0, 0.0), 1.0);
+    const g = alpha !== 1.0 ? this._mainGraphics.addChild(new PIXI.Graphics()) : this._mainGraphics;
+    g.alpha = alpha;
+    return g;
   }
 
   private drawAxesLines() {

@@ -71,8 +71,8 @@ export function drawBooleanScene(
   drawVertexes(pline2.vertexData(), pline2Color);
   // draw polylines/boolean result
   if (op === BooleanOp.None) {
-    scene.drawCavcPolyline(pline1, { color: pline1Color, fill: fill });
-    scene.drawCavcPolyline(pline2, { color: pline2Color, fill: fill });
+    scene.drawCavcPolyline(pline1, { color: pline1Color, fill: fill, alpha: 0.7 });
+    scene.drawCavcPolyline(pline2, { color: pline2Color, fill: fill, alpha: 0.7 });
   } else {
     const processPosPline = (pline: Polyline, i: number) => {
       const color = COLORS[i % COLORS.length];
