@@ -17,7 +17,7 @@ checksum = "a4a45a46ab1f2412e53d3a0ade76ffad2025804294569aae387231a0cd6e0899"
 [[package]]
 name = "cavalier_contours"
 version = "0.1.0"
-source = "git+https://github.com/jbuckmccready/cavalier_contours#f712458c6aa9fb13d6f7b01a13e159c0680f856a"
+source = "git+https://github.com/jbuckmccready/cavalier_contours#3d8f54ae312b7fc166d310593b8e4e5d6c1095ed"
 dependencies = [
  "num-traits",
  "static_aabb2d_index",

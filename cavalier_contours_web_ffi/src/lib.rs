@@ -339,7 +339,7 @@ impl Polyline {
             return result;
         }
         let aabb_index = self.0.create_approx_aabb_index().unwrap();
-        let intrs = all_self_intersects_as_basic(&self.0, &aabb_index, 1e-5);
+        let intrs = all_self_intersects_as_basic(&self.0, &aabb_index, true, 1e-5);
         for intr in intrs {
             result.push(&vector2_into_jsvalue(intr.point));
         }
