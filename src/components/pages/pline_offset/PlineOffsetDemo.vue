@@ -1,34 +1,20 @@
 <script setup lang="ts">
 import PlineOffsetScene from "@/components/pages/pline_offset/PlineOffsetScene.vue";
-import { reactive, ref, unref } from "vue";
+import { ref, unref } from "vue";
 import CheckBox from "@/components/common/CheckBox.vue";
 import InputSlider from "@/components/common/InputSlider.vue";
 import Selector from "@/components/common/Selector.vue";
-import Button from "@/components/common/Button.vue";
 import PlineJsonEditor from "@/components/common/PlineJsonEditor.vue";
-import ControlsSidePane from "@/components/common/ControlsSidePane.vue";
-import * as shapes from "@/core/shapes";
+import PrimaryButton from "@/components/common/PrimaryButton.vue";
 import * as utils from "@/core/utils";
 import {
-  DemoMode,
+  OffsetDemoMode,
   allDemoModesAsStrings,
-  DemoModelStorage,
 } from "@/components/pages/pline_offset/pline_offset";
 
-let modelData: DemoModelStorage = {
-  type: DemoMode.Offset,
-  offset: 3.0,
-  repeatOffsetCount: 50,
-  handleSelfIntersects: true,
-  showDualRawOffset: false,
-  showRawOffsetIntersects: false,
-};
+import state from "@/components/pages/pline_offset/pline_offset_state";
 
-let demoModel = reactive(modelData);
-
-const plineJsonStr = ref(utils.plineArrayToJsonStr(shapes.createExample1PlineVertexes(10), true));
-
-const allDemoModes = ref(allDemoModesAsStrings());
+const allDemoModes = Object.freeze(allDemoModesAsStrings());
 
 const plineOffsetSceneRef = ref<typeof PlineOffsetScene>();
 
@@ -36,46 +22,44 @@ const copyRustTestCode = () => {
   const scene = utils.valueOrThrow(unref(plineOffsetSceneRef));
   utils.copyToClipboard(scene.getRustTestCodeString());
 };
+
+const splitterModel = ref(75);
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-row">
-    <div class="flex-1 h-full min-w-0 box-border border-primary-500 border-r-2">
+  <q-splitter v-model="splitterModel" :limits="[25, 90]" style="height: inherit">
+    <template #before>
       <PlineOffsetScene
         ref="plineOffsetSceneRef"
-        v-model:plineJsonStr="plineJsonStr"
-        :model="demoModel"
+        v-model:plineJsonStr="state.plineJsonStr"
+        :model="state"
       />
-    </div>
-    <ControlsSidePane>
-      <Selector v-model="demoModel.type" label="Mode" :options="allDemoModes" />
-      <InputSlider v-model="demoModel.offset" label="Offset" :min="-100" :max="100" />
-      <InputSlider
-        v-if="demoModel.type === DemoMode.Offset"
-        v-model="demoModel.repeatOffsetCount"
-        label="Offset Count"
-        :min="0"
-        :max="100"
-      />
-      <CheckBox
-        v-if="demoModel.type === DemoMode.Offset"
-        v-model="demoModel.handleSelfIntersects"
-        label="Handle Self Intersects"
-      />
-      <CheckBox
-        v-if="demoModel.type === DemoMode.RawOffset"
-        v-model="demoModel.showDualRawOffset"
-        label="Show Dual Raw Offset"
-      />
-      <CheckBox
-        v-if="demoModel.type === DemoMode.RawOffset"
-        v-model="demoModel.showRawOffsetIntersects"
-        label="Show Self Intersects"
-      />
-      <PlineJsonEditor v-model="plineJsonStr" />
-      <Button @click="copyRustTestCode">Copy Test Code</Button>
-    </ControlsSidePane>
-  </div>
-</template>
+    </template>
 
-<style></style>
+    <template #after>
+      <div class="q-pa-sm q-gutter-sm">
+        <Selector v-model="state.type" :options="allDemoModes" label="Mode" />
+        <InputSlider v-model.number="state.offset" label="Offset" />
+        <InputSlider
+          v-model.number="state.repeatOffsetCount"
+          label="Offset Count"
+          :min="0"
+          :max="100"
+        />
+        <div v-if="state.type === OffsetDemoMode.Offset">
+          <CheckBox v-model="state.handleSelfIntersects" label="Handle Self Intersects" />
+        </div>
+        <div v-if="state.type === OffsetDemoMode.RawOffset">
+          <CheckBox v-model="state.showDualRawOffset" label="Show Dual Raw Offset" />
+          <CheckBox v-model="state.showRawOffsetIntersects" label="Show Self Intersects" />
+        </div>
+        <PlineJsonEditor
+          :model-value="state.plineJsonStr"
+          label="Polyline"
+          @submitted-value="(v) => (state.plineJsonStr = v)"
+        />
+        <PrimaryButton label="Copy Test Code" @click="copyRustTestCode" />
+      </div>
+    </template>
+  </q-splitter>
+</template>

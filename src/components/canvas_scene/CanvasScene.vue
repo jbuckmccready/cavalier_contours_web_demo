@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, unref, watch } from "vue";
+import { onMounted, ref, unref, watch } from "vue";
 import * as utils from "@/core/utils";
 import { SceneRenderer } from "./scene_renderer";
 
@@ -47,7 +47,6 @@ onMounted(() => {
 
   if (props.resizeToParent) {
     resizeScene();
-    window.addEventListener("resize", resizeScene);
   }
 
   sceneRenderer.center();
@@ -65,20 +64,20 @@ const resizeScene = () => {
   }
 };
 
+const onResize = (size: { width: number; height: number }) => {
+  if (props.resizeToParent) {
+    sceneRenderer?.resize(size.width, size.height);
+  }
+};
+
 watch(
   () => props.resizeToParent,
   () => {
     if (props.resizeToParent) {
-      window.addEventListener("resize", resizeScene);
-    } else {
-      window.removeEventListener("resize", resizeScene);
+      resizeScene();
     }
   }
 );
-
-onUnmounted(() => {
-  window.removeEventListener("resize", resizeScene);
-});
 
 const requestRender = () => {
   if (sceneRenderer === undefined) {
@@ -93,7 +92,6 @@ defineExpose({
 </script>
 
 <template>
-  <canvas ref="canvasRef" class="bg-white block m-auto"> </canvas>
+  <q-resize-observer @resize="onResize"> </q-resize-observer>
+  <canvas ref="canvasRef"> </canvas>
 </template>
-
-<style scoped></style>

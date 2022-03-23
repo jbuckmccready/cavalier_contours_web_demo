@@ -1,43 +1,46 @@
 <script setup lang="ts">
-import { valueOrThrow } from "@/core/utils";
-import { ref, unref } from "vue";
-
-defineEmits<{
-  (event: "update:modelValue", jsonString: string): void;
+const emit = defineEmits<{
+  (event: "submittedValue", jsonString: string): void;
 }>();
 
 defineProps({
-  label: {
-    type: String,
-    default: "Polyline",
-  },
   modelValue: {
     type: String,
     default: "",
   },
 });
 
-const textAreaRef = ref<HTMLTextAreaElement>();
+let textInput: string | undefined = undefined;
 const onKeyPress = (event: KeyboardEvent) => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
-    valueOrThrow(unref(textAreaRef)).dispatchEvent(new Event("change"));
+    if (textInput !== undefined) {
+      emit("submittedValue", textInput);
+    }
   }
+};
+const onFocusLost = () => {
+  if (textInput !== undefined) {
+    emit("submittedValue", textInput);
+  }
+};
+
+const onChange = (v: string | number | null) => {
+  textInput = v as string;
 };
 </script>
 
 <template>
-  <div class="block">
-    <span class="text-gray-700">{{ label }}</span>
-    <textarea
-      ref="textAreaRef"
-      class="block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"
-      rows="6"
-      :value="modelValue"
-      @change="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
-      @keypress="onKeyPress"
-    />
-  </div>
+  <q-input
+    ref="inputRef"
+    :model-value="modelValue"
+    filled
+    type="textarea"
+    v-bind="$attrs"
+    @update:model-value="onChange"
+    @keypress="onKeyPress"
+    @focusout="onFocusLost"
+  ></q-input>
 </template>
 
 <style></style>

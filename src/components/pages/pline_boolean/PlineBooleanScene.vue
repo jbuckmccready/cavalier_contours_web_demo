@@ -11,24 +11,13 @@ import {
   drawBooleanScene,
 } from "@/components/pages/pline_boolean/pline_boolean";
 
-const props = defineProps({
-  currentBooleanOp: {
-    type: String,
-    default: BooleanOp[BooleanOp.None],
-  },
-  fillPolylines: {
-    type: Boolean,
-    default: false,
-  },
-  pline1JsonStr: {
-    type: String,
-    default: "",
-  },
-  pline2JsonStr: {
-    type: String,
-    default: "",
-  },
-});
+interface Props {
+  currentBooleanOp: string;
+  fillPolylines: boolean;
+  pline1JsonStr: string;
+  pline2JsonStr: string;
+}
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (event: "update:pline1JsonStr", value: string): void;
