@@ -15,6 +15,7 @@ const init = () => {
     pline1JsonStr,
     pline2JsonStr,
     fillPolylines: true,
+    splitterModel: 75,
   };
 };
 const state: BooleanDemoState = init();

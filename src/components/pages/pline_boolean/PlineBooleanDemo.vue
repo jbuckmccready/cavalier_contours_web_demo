@@ -17,12 +17,10 @@ const copyRustTestCode = () => {
   const scene = plineBooleanSceneRef.value;
   utils.copyToClipboard(utils.valueOrThrow(scene).getRustTestCodeString());
 };
-
-const splitterModel = ref(75);
 </script>
 
 <template>
-  <q-splitter v-model="splitterModel" :limits="[25, 90]" style="height: inherit">
+  <q-splitter v-model="state.splitterModel" :limits="[25, 90]" style="height: inherit">
     <template #before>
       <PlineBooleanScene
         ref="plineBooleanSceneRef"

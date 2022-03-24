@@ -26,4 +26,5 @@ export type StaticAABB2DIndexDemoState = {
   neighborDistance: number;
   neighborsQueryCenter: [number, number];
   queryBox: [number, number, number, number];
+  splitterModel: number;
 };

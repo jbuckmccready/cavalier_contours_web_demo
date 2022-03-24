@@ -19,6 +19,7 @@ export function allDemoModesAsStrings(): string[] {
 export type BaseModelData = {
   offset: number;
   plineJsonStr: string;
+  splitterModel: number;
 };
 
 export type OffsetModeData = BaseModelData & {

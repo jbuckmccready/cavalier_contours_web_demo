@@ -11,5 +11,6 @@ const state: OffsetDemoState = {
   showDualRawOffset: false,
   showRawOffsetIntersects: false,
   plineJsonStr: utils.plineArrayToJsonStr(shapes.createExample1PlineVertexes(10), true),
+  splitterModel: 75,
 };
 export default reactive(state);

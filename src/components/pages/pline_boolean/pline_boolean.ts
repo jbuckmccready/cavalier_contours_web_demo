@@ -42,6 +42,7 @@ export type BooleanDemoState = {
   pline1JsonStr: string;
   pline2JsonStr: string;
   fillPolylines: boolean;
+  splitterModel: number;
 };
 
 // helper function to perform boolean operation between two polylines, visit all results

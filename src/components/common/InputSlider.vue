@@ -5,27 +5,18 @@ const emit = defineEmits<{
   (event: "update:modelValue", value: number): void;
 }>();
 
-const props = defineProps({
-  label: {
-    type: String,
-    default: "",
-  },
-  modelValue: {
-    type: Number,
-    default: 0,
-  },
-  min: {
-    type: Number,
-    default: -10,
-  },
-  max: {
-    type: Number,
-    default: 10,
-  },
-  step: {
-    type: Number,
-    default: 1.0,
-  },
+interface Props {
+  label?: string;
+  modelValue: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+const props = withDefaults(defineProps<Props>(), {
+  label: "",
+  min: 0,
+  max: 10,
+  step: 1,
 });
 
 const modelValueProxy = computed({
@@ -33,7 +24,8 @@ const modelValueProxy = computed({
     return props.modelValue;
   },
   set(v: number) {
-    emit("update:modelValue", v);
+    const val = Math.max(Math.min(v, props.max), props.min);
+    emit("update:modelValue", val);
   },
 });
 </script>
@@ -41,6 +33,6 @@ const modelValueProxy = computed({
 <template>
   <div>
     <q-input v-model.number="modelValueProxy" :label="label" type="number" outlined />
-    <q-slider v-model="modelValueProxy" label :min="min" :max="max" :step="step"></q-slider>
+    <q-slider v-model="modelValueProxy" :min="min" :max="max" :step="step" label />
   </div>
 </template>

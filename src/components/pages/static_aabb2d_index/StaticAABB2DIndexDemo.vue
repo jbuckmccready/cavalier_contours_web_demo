@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import StaticAABB2DIndexScene from "@/components/pages/static_aabb2d_index/StaticAABB2DIndexScene.vue";
 import Selector from "@/components/common/Selector.vue";
 import InputSlider from "@/components/common/InputSlider.vue";
@@ -11,11 +10,10 @@ import {
 import state from "@/components/pages/static_aabb2d_index/static_aabb2d_index_state";
 
 const allDemoModes = Object.freeze(allDemoModesAsStrings());
-const splitterModel = ref(75);
 </script>
 
 <template>
-  <q-splitter v-model="splitterModel" :limits="[25, 90]" style="height: inherit">
+  <q-splitter v-model="state.splitterModel" :limits="[25, 90]" style="height: inherit">
     <template #before>
       <StaticAABB2DIndexScene
         :current-demo-mode="state.currentDemoMode"

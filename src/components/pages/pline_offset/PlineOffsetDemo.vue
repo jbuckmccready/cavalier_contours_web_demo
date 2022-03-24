@@ -22,12 +22,10 @@ const copyRustTestCode = () => {
   const scene = utils.valueOrThrow(unref(plineOffsetSceneRef));
   utils.copyToClipboard(scene.getRustTestCodeString());
 };
-
-const splitterModel = ref(75);
 </script>
 
 <template>
-  <q-splitter v-model="splitterModel" :limits="[25, 90]" style="height: inherit">
+  <q-splitter v-model="state.splitterModel" :limits="[25, 90]" style="height: inherit">
     <template #before>
       <PlineOffsetScene
         ref="plineOffsetSceneRef"
@@ -39,7 +37,7 @@ const splitterModel = ref(75);
     <template #after>
       <div class="q-pa-sm q-gutter-sm">
         <Selector v-model="state.type" :options="allDemoModes" label="Mode" />
-        <InputSlider v-model.number="state.offset" label="Offset" />
+        <InputSlider v-model.number="state.offset" :min="-100" :max="100" label="Offset" />
         <InputSlider
           v-model.number="state.repeatOffsetCount"
           label="Offset Count"

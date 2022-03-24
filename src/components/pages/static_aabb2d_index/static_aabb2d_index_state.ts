@@ -12,6 +12,7 @@ const state: StaticAABB2DIndexDemoState = {
   neighborDistance: 100,
   neighborsQueryCenter: [0, 0],
   queryBox: [300, 40, 500, 500],
+  splitterModel: 75,
 };
 
 export default reactive(state);
