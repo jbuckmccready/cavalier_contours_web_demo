@@ -238,7 +238,10 @@ impl Polyline {
 
     #[wasm_bindgen(js_name = "closestPoint")]
     pub fn closest_point(&self, x: f64, y: f64) -> JsValue {
-        let closest_point = self.0.closest_point(cavc::Vector2::new(x, y)).unwrap();
+        let closest_point = self
+            .0
+            .closest_point(cavc::Vector2::new(x, y), 1e-5)
+            .unwrap();
 
         let result = js_sys::Object::new();
         let start_index = closest_point.seg_start_index as u32;
