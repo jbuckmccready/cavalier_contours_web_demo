@@ -238,7 +238,10 @@ impl Polyline {
 
     #[wasm_bindgen(js_name = "closestPoint")]
     pub fn closest_point(&self, x: f64, y: f64) -> JsValue {
-        let closest_point = self.0.closest_point(cavc::Vector2::new(x, y)).unwrap();
+        let closest_point = self
+            .0
+            .closest_point(cavc::Vector2::new(x, y), 1e-5)
+            .unwrap();
 
         let result = js_sys::Object::new();
         let start_index = closest_point.seg_start_index as u32;
@@ -367,7 +370,7 @@ impl Polyline {
         let result = js_sys::Object::new();
 
         // remove redundant vertexes for consistent vertex count
-        let pline = self.0.remove_redundant(1e-5);
+        let pline = self.0.remove_redundant(1e-4);
         let pline = pline.as_ref().unwrap_or(&self.0);
         let vertex_count = pline.vertex_count() as u32;
         let extents = pline.extents().unwrap();
