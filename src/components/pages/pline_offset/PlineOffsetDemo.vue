@@ -39,14 +39,17 @@ const copyRustTestCode = () => {
         <Selector v-model="state.type" :options="allDemoModes" label="Mode" />
         <InputSlider v-model.number="state.offset" :min="-100" :max="100" label="Offset" />
         <InputSlider
+          v-if="state.type === OffsetDemoMode.Offset"
           v-model.number="state.repeatOffsetCount"
           label="Offset Count"
           :min="0"
           :max="100"
         />
-        <div v-if="state.type === OffsetDemoMode.Offset">
-          <CheckBox v-model="state.handleSelfIntersects" label="Handle Self Intersects" />
-        </div>
+        <CheckBox
+          v-if="state.type === OffsetDemoMode.Offset"
+          v-model="state.handleSelfIntersects"
+          label="Handle Self Intersects"
+        />
         <div v-if="state.type === OffsetDemoMode.RawOffset">
           <CheckBox v-model="state.showDualRawOffset" label="Show Dual Raw Offset" />
           <CheckBox v-model="state.showRawOffsetIntersects" label="Show Self Intersects" />
