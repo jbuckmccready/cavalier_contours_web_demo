@@ -6,11 +6,11 @@ import {
 } from "@/components/canvas_scene/scene_renderer";
 import { Polyline } from "cavalier_contours_web_ffi";
 export enum BooleanOp {
-  None = -1,
-  Or = 0,
-  And,
-  Not,
-  Xor,
+  None = "None",
+  Or = "Or",
+  And = "And",
+  Not = "Not",
+  Xor = "Xor",
 }
 
 export function allBooleanOps(): BooleanOp[] {
@@ -18,8 +18,32 @@ export function allBooleanOps(): BooleanOp[] {
 }
 
 export function allBooleanOpsAsStrings(): string[] {
-  return Object.keys(BooleanOp).filter((k) => isNaN(Number(k)));
+  return Object.values(BooleanOp);
 }
+
+/// Convert boolean op string enum to number to be passed to cavalier contours function.
+export function booleanOpToOpNumber(op: BooleanOp) {
+  switch (op) {
+    case BooleanOp.Or:
+      return 0;
+    case BooleanOp.And:
+      return 1;
+    case BooleanOp.Not:
+      return 2;
+    case BooleanOp.Xor:
+      return 3;
+    default:
+      return -1;
+  }
+}
+
+export type BooleanDemoState = {
+  booleanOp: BooleanOp;
+  pline1JsonStr: string;
+  pline2JsonStr: string;
+  fillPolylines: boolean;
+  splitterModel: number;
+};
 
 // helper function to perform boolean operation between two polylines, visit all results
 // and free/clean up memory
@@ -31,7 +55,7 @@ export function visitBoolean(
   negVisitor: (pline: Polyline, index: number) => void,
   free = true
 ) {
-  const result = p1.boolean(p2, op);
+  const result = p1.boolean(p2, booleanOpToOpNumber(op));
   result.posPlines.forEach((pline: Polyline, i: number) => {
     posVisitor(pline, i);
     if (free) {

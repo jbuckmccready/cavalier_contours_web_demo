@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, toRefs, unref, watch, PropType } from "vue";
+import { ref, toRefs, unref, watch } from "vue";
 
 import {
   SimpleColors,
@@ -9,45 +9,41 @@ import {
   Point,
 } from "@/components/canvas_scene/scene_renderer";
 import { createCirclePts, createSegAABB } from "@/core/shapes";
-import { DemoMode } from "@/components/pages/static_aabb2d_index/static_aabb2d_index";
+import { StaticAABBIndexDemoMode } from "@/components/pages/static_aabb2d_index/static_aabb2d_index";
 import * as utils from "@/core/utils";
 import CanvasScene from "@/components/canvas_scene/CanvasScene.vue";
 import { StaticAABB2DIndex } from "cavalier_contours_web_ffi";
 
-const props = defineProps({
-  currentDemoMode: {
-    type: String as PropType<DemoMode>,
-    default: DemoMode.None,
-  },
-  vertexCount: {
-    type: Number,
-    default: 100,
-  },
-  indexNodeSize: {
-    type: Number,
-    default: 16,
-  },
-  editShape: {
-    type: Boolean,
-    default: false,
-  },
-  neighborDistance: {
-    type: Number,
-    default: 100,
-  },
-});
+interface Props {
+  currentDemoMode: StaticAABBIndexDemoMode;
+  vertexCount: number;
+  indexNodeSize: number;
+  editShape: boolean;
+  neighborDistance: number;
+  neighborsQueryCenter: [number, number];
+  queryBox: [number, number, number, number];
+}
+const props = defineProps<Props>();
 
-const { currentDemoMode, vertexCount, indexNodeSize, editShape, neighborDistance } = toRefs(props);
+const {
+  currentDemoMode,
+  vertexCount,
+  indexNodeSize,
+  editShape,
+  neighborDistance,
+  queryBox,
+  neighborsQueryCenter,
+} = toRefs(props);
 const canvasSceneRef = ref<typeof CanvasScene>();
 
-let queryBox = [300, 40, 500, 500];
+let qBox = unref(queryBox);
 
-const queryMinX = () => Math.min(queryBox[0], queryBox[2]);
-const queryMinY = () => Math.min(queryBox[1], queryBox[3]);
-const queryMaxX = () => Math.max(queryBox[0], queryBox[2]);
-const queryMaxY = () => Math.max(queryBox[1], queryBox[3]);
+const queryMinX = () => Math.min(qBox[0], qBox[2]);
+const queryMinY = () => Math.min(qBox[1], qBox[3]);
+const queryMaxX = () => Math.max(qBox[0], qBox[2]);
+const queryMaxY = () => Math.max(qBox[1], qBox[3]);
 
-let neighborsCircleCenter = [0, 0];
+let neighborsCenter = unref(neighborsQueryCenter);
 
 let radius = 500;
 let circlePoints = createCirclePts(0, 0, radius, unref(vertexCount));
@@ -66,9 +62,9 @@ function drawToScene(scene: SceneRenderer) {
   const index = new StaticAABB2DIndex(boxes, unref(indexNodeSize));
   const mode = unref(currentDemoMode);
   switch (mode) {
-    case DemoMode.None:
+    case StaticAABBIndexDemoMode.None:
       break;
-    case DemoMode.IndexBoxes: {
+    case StaticAABBIndexDemoMode.IndexBoxes: {
       const allBoxes = index.allBoxes();
       const levelBounds = index.levelBounds();
       let currentBoundIndex = 0;
@@ -85,24 +81,24 @@ function drawToScene(scene: SceneRenderer) {
       }
       break;
     }
-    case DemoMode.QueryBox: {
+    case StaticAABBIndexDemoMode.QueryBox: {
       scene.drawRectFromBounds(queryMinX(), queryMinY(), queryMaxX(), queryMaxY(), {
         color: SimpleColors.Blue,
       });
 
-      scene.drawScaledRect(queryBox[0], queryBox[1], HIT_DELTA, HIT_DELTA, {
+      scene.drawScaledRect(qBox[0], qBox[1], HIT_DELTA, HIT_DELTA, {
         fill: true,
         color: SimpleColors.Blue,
       });
-      scene.drawScaledRect(queryBox[0], queryBox[3], HIT_DELTA, HIT_DELTA, {
+      scene.drawScaledRect(qBox[0], qBox[3], HIT_DELTA, HIT_DELTA, {
         fill: true,
         color: SimpleColors.Blue,
       });
-      scene.drawScaledRect(queryBox[2], queryBox[3], HIT_DELTA, HIT_DELTA, {
+      scene.drawScaledRect(qBox[2], qBox[3], HIT_DELTA, HIT_DELTA, {
         fill: true,
         color: SimpleColors.Blue,
       });
-      scene.drawScaledRect(queryBox[2], queryBox[1], HIT_DELTA, HIT_DELTA, {
+      scene.drawScaledRect(qBox[2], qBox[1], HIT_DELTA, HIT_DELTA, {
         fill: true,
         color: SimpleColors.Blue,
       });
@@ -119,24 +115,21 @@ function drawToScene(scene: SceneRenderer) {
 
       break;
     }
-    case DemoMode.Neighbors: {
-      scene.drawScaledRect(
-        neighborsCircleCenter[0],
-        neighborsCircleCenter[1],
-        HIT_DELTA,
-        HIT_DELTA,
-        { fill: true, color: SimpleColors.Blue }
-      );
+    case StaticAABBIndexDemoMode.Neighbors: {
+      scene.drawScaledRect(neighborsCenter[0], neighborsCenter[1], HIT_DELTA, HIT_DELTA, {
+        fill: true,
+        color: SimpleColors.Blue,
+      });
 
       const maxDistance = unref(neighborDistance);
       let neighborResults = index.neighbors(
-        neighborsCircleCenter[0],
-        neighborsCircleCenter[1],
+        neighborsCenter[0],
+        neighborsCenter[1],
         1000,
         maxDistance
       );
 
-      scene.drawCircle(neighborsCircleCenter[0], neighborsCircleCenter[1], maxDistance);
+      scene.drawCircle(neighborsCenter[0], neighborsCenter[1], maxDistance);
 
       for (let i = 0; i < boxes.length; i += 4) {
         let color = SimpleColors.Gray;
@@ -174,7 +167,7 @@ let isNeighborsCircleGrabbed = false;
 
 const dragBeginHandler = (payload: { pt: Point; renderer: SceneRenderer; handled: boolean }) => {
   const grabCorner = (xIdx: number, yIdx: number) => {
-    let cornerPt = { x: queryBox[xIdx], y: queryBox[yIdx] };
+    let cornerPt = { x: qBox[xIdx], y: qBox[yIdx] };
 
     if (payload.renderer.scaledHitTest(payload.pt, cornerPt, HIT_DELTA)) {
       grabbedXIdx = xIdx;
@@ -185,17 +178,17 @@ const dragBeginHandler = (payload: { pt: Point; renderer: SceneRenderer; handled
     return false;
   };
 
-  if (unref(currentDemoMode) === DemoMode.QueryBox) {
+  if (unref(currentDemoMode) === StaticAABBIndexDemoMode.QueryBox) {
     if (grabCorner(0, 1) || grabCorner(0, 3) || grabCorner(2, 1) || grabCorner(2, 3)) {
       isQueryBoxGrabbed = true;
       payload.handled = true;
       return;
     }
-  } else if (unref(currentDemoMode) === DemoMode.Neighbors) {
+  } else if (unref(currentDemoMode) === StaticAABBIndexDemoMode.Neighbors) {
     if (
       payload.renderer.scaledHitTest(
         payload.pt,
-        { x: neighborsCircleCenter[0], y: neighborsCircleCenter[1] },
+        { x: neighborsCenter[0], y: neighborsCenter[1] },
         HIT_DELTA
       )
     ) {
@@ -234,11 +227,11 @@ const draggingHandler = (payload: { pt: Point; renderer: SceneRenderer }) => {
   }
 
   if (isQueryBoxGrabbed) {
-    queryBox[grabbedXIdx] = payload.pt.x;
-    queryBox[grabbedYIdx] = payload.pt.y;
+    qBox[grabbedXIdx] = payload.pt.x;
+    qBox[grabbedYIdx] = payload.pt.y;
   } else if (isNeighborsCircleGrabbed) {
-    neighborsCircleCenter[0] = payload.pt.x;
-    neighborsCircleCenter[1] = payload.pt.y;
+    neighborsCenter[0] = payload.pt.x;
+    neighborsCenter[1] = payload.pt.y;
   } else {
     shapeMutated();
     circlePoints[grabbedXIdx] = payload.pt.x;

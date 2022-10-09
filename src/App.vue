@@ -1,54 +1,49 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import { ref } from "vue";
-import NavButton from "@/components/common/NavButton.vue";
-import AboutPage from "@/components/pages/AboutPage.vue";
-import PlineOffsetDemo from "@/components/pages/pline_offset/PlineOffsetDemo.vue";
-import PlineBooleanDemo from "@/components/pages/pline_boolean/PlineBooleanDemo.vue";
-import StaticAABB2DIndexDemo from "@/components/pages/static_aabb2d_index/StaticAABB2DIndexDemo.vue";
+import mainRoutes from "@/main_demo_routes";
 
-const pages = [
-  ["About", AboutPage],
-  ["Polyline Offset", PlineOffsetDemo],
-  ["Polyline Boolean", PlineBooleanDemo],
-  ["Static AABB Index", StaticAABB2DIndexDemo],
-];
-const selectedPageIndex = ref(0);
+const pageStyleFn = (offset: number) => {
+  // adjust height by offset for header/footer
+  return { height: offset ? `calc(100vh - ${offset}px)` : "100vh" };
+};
 </script>
 
 <template>
-  <!-- Page navigation bar-->
-  <div class="h-screen w-screen flex flex-col">
-    <nav class="bg-primary-800 h-full w-full flex-1">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <div class="hidden md:block">
-              <div class="ml-10 flex items-baseline space-x-4">
-                <NavButton
-                  v-for="([pageName, _], index) in pages"
-                  :key="index"
-                  :is-active="selectedPageIndex === index"
-                  @click="selectedPageIndex = index"
-                >
-                  {{ pageName }}
-                </NavButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+  <q-layout class="fullscreen">
+    <q-header elevated class="bg-primary text-white">
+      <q-toolbar>
+        <q-btn flat href="https://github.com/jbuckmccready/cavalier_contours">
+          <q-icon>
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"
+              />
+            </svg>
+          </q-icon>
+        </q-btn>
+        <!-- <q-toolbar-title> Cavalier Contours </q-toolbar-title> -->
+        <span class="text-h6"> Cavalier Contours </span>
+        <q-separator vertical spaced />
 
-    <!-- Main page area-->
-    <div class="w-full h-full min-h-0">
-      <!-- Cache inactive pages -->
-      <keep-alive>
-        <component :is="pages[selectedPageIndex][1]" v-bind="pages[selectedPageIndex][2]" />
-      </keep-alive>
-    </div>
-  </div>
+        <q-tabs align="left" dense>
+          <q-route-tab
+            v-for="route in mainRoutes"
+            :key="route.path"
+            :to="route.path"
+            :label="route.label"
+          />
+        </q-tabs>
+      </q-toolbar>
+    </q-header>
+
+    <q-page-container>
+      <q-page :style-fn="pageStyleFn">
+        <router-view v-slot="{ Component }">
+          <component :is="Component" />
+        </router-view>
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <style></style>

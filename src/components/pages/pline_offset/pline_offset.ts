@@ -3,21 +3,23 @@ import { Polyline } from "cavalier_contours_web_ffi";
 import { HIT_DELTA } from "@/components/canvas_scene/scene_renderer";
 import * as utils from "@/core/utils";
 
-export enum DemoMode {
+export enum OffsetDemoMode {
   Offset = "Offset",
   RawOffset = "Raw Offset",
   RawOffsetSegs = "Raw Offset Segments",
 }
-export function allDemoModes(): DemoMode[] {
-  return [DemoMode.Offset, DemoMode.RawOffset, DemoMode.RawOffsetSegs];
+export function allDemoModes(): OffsetDemoMode[] {
+  return [OffsetDemoMode.Offset, OffsetDemoMode.RawOffset, OffsetDemoMode.RawOffsetSegs];
 }
 
 export function allDemoModesAsStrings(): string[] {
-  return Object.values(DemoMode);
+  return Object.values(OffsetDemoMode);
 }
 
 export type BaseModelData = {
   offset: number;
+  plineJsonStr: string;
+  splitterModel: number;
 };
 
 export type OffsetModeData = BaseModelData & {
@@ -26,7 +28,7 @@ export type OffsetModeData = BaseModelData & {
 };
 
 export type OffsetModeModel = OffsetModeData & {
-  readonly type: DemoMode.Offset;
+  readonly type: OffsetDemoMode.Offset;
 };
 
 export type RawOffsetModeData = BaseModelData & {
@@ -34,21 +36,21 @@ export type RawOffsetModeData = BaseModelData & {
   showRawOffsetIntersects: boolean;
 };
 export type RawOffsetModeModel = RawOffsetModeData & {
-  readonly type: DemoMode.RawOffset;
+  readonly type: OffsetDemoMode.RawOffset;
 };
 
 export type RawOffsetSegsModeData = BaseModelData;
 export type RawOffsetSegsModeModel = RawOffsetModeData & {
-  readonly type: DemoMode.RawOffsetSegs;
+  readonly type: OffsetDemoMode.RawOffsetSegs;
 };
 
 /// Union representing the different demo modes associated model data.
 export type OffsetDemoModel = OffsetModeModel | RawOffsetModeModel | RawOffsetSegsModeModel;
 
 /// Type that can hold all the properties for all the demo mode cases.
-export type DemoModelStorage = OffsetModeData &
+export type OffsetDemoState = OffsetModeData &
   RawOffsetModeData &
-  RawOffsetSegsModeData & { type: DemoMode };
+  RawOffsetSegsModeData & { type: OffsetDemoMode };
 
 export function drawOffsetScene(
   scene: SceneRenderer,
@@ -69,7 +71,7 @@ export function drawOffsetScene(
   scene.drawCavcPolyline(pline1, { color: SimpleColors.Black });
   const m = model;
   switch (m.type) {
-    case DemoMode.Offset:
+    case OffsetDemoMode.Offset:
       // draw offsets
       if (m.repeatOffsetCount > 0) {
         const isCCWPline = pline1.area() > 0;
@@ -102,7 +104,7 @@ export function drawOffsetScene(
         offsetResults.forEach((p) => p.free());
       }
       break;
-    case DemoMode.RawOffset: {
+    case OffsetDemoMode.RawOffset: {
       const drawRawOffset = (
         pline: Polyline,
         offset: number,
@@ -129,7 +131,7 @@ export function drawOffsetScene(
       }
       break;
     }
-    case DemoMode.RawOffsetSegs: {
+    case OffsetDemoMode.RawOffsetSegs: {
       scene.drawCavcRawOffsetSegs(pline1, m.offset);
       break;
     }

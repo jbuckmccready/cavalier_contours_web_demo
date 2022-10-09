@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import { ref, unref, watch, PropType } from "vue";
+import { ref, unref, watch } from "vue";
 import { HIT_DELTA, Point, SceneRenderer } from "@/components/canvas_scene/scene_renderer";
 import * as utils from "@/core/utils";
 import CanvasScene from "@/components/canvas_scene/CanvasScene.vue";
 import { Polyline } from "cavalier_contours_web_ffi";
 import {
-  DemoMode,
+  OffsetDemoMode,
   drawOffsetScene,
   OffsetDemoModel,
 } from "@/components/pages/pline_offset/pline_offset";
 
-const props = defineProps({
-  model: {
-    type: Object as PropType<OffsetDemoModel>,
-    required: true,
-  },
-  plineJsonStr: {
-    type: String,
-    default: "",
-  },
-});
+interface Props {
+  model: OffsetDemoModel;
+  plineJsonStr: string;
+}
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (event: "update:plineJsonStr", value: string): void;
@@ -77,7 +72,8 @@ watch(
 
 const getRustTestCodeString = () => {
   const model = props.model;
-  const handleSelfIntersects = model.type === DemoMode.Offset ? model.handleSelfIntersects : true;
+  const handleSelfIntersects =
+    model.type === OffsetDemoMode.Offset ? model.handleSelfIntersects : true;
   let pline1 = new Polyline(pline1Array, pline1IsClosed);
   let offsetResults = pline1.parallelOffset(model.offset, handleSelfIntersects);
   let inputPlineStr = utils.createPlineRustCodeStr(pline1);
