@@ -25,10 +25,6 @@ export function assertExhaustive(
   throw new Error(message);
 }
 
-export function allEnumCasesAsStrings<E>(e: E): string[] {
-  return Object.keys(e).filter((k) => isNaN(Number(k)));
-}
-
 /// Print number to Rust f64 string, e.g. 0 -> "0.0", 88.87654 -> "88.87654"
 export function toRustf64Str(number: number): string {
   return number.toFixed(Math.max(((number + "").split(".")[1] || "").length, 1));
