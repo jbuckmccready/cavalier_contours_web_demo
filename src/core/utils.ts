@@ -84,6 +84,64 @@ export function jsonStrToPlineArray(jsonStr: string): {
   }
 }
 
+/// TODO: Doc
+// export function multiPlineArrayToJsonStr(
+//   plines: {
+//     array: Float64Array;
+//     isClosed: boolean;
+//   }[]
+// ): string {
+//   const result = [];
+//   for (let i = 0; i < plines.length; i++) {
+//     const array = plines[i].array;
+//     const isClosed = plines[i].isClosed;
+//     const obj = {
+//       isClosed: isClosed,
+//       vertexes: new Array<Array<number>>(),
+//     };
+//     for (let i = 0; i < array.length; i += 3) {
+//       const v = [array[i], array[i + 1], array[i + 2]];
+//       obj.vertexes.push(v);
+//     }
+
+//     const f = (k: string, v: { isClosed: boolean; vertexes: number[][] }) => {
+//       if (k !== "vertexes" && v instanceof Array) {
+//         return JSON.stringify(v);
+//       }
+//       return v;
+//     };
+//   }
+//     return JSON.stringify(result, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
+// }
+
+/// TODO: Doc
+export function jsonStrToMultiplePlineArrays(jsonStr: string): {
+  array: Float64Array;
+  isClosed: boolean;
+}[] {
+  try {
+    const inputPlines = JSON.parse(jsonStr);
+    let plines = [];
+    for (let i = 0; i < inputPlines.length; i++) {
+      let inputPline = inputPlines[i];
+      const array = new Float64Array(inputPline.vertexes.length * 3);
+      inputPline.vertexes.forEach((v: number[], i: number) => {
+        const offset = i * 3;
+        array[offset] = v[0];
+        array[offset + 1] = v[1];
+        array[offset + 2] = v[2];
+      });
+
+      let p = { array: array, isClosed: inputPline.isClosed };
+      plines.push(p);
+    }
+
+    return plines;
+  } catch {
+    return [];
+  }
+}
+
 /// Create rust code string for declaring pline
 export function createPlineRustCodeStr(pline: Polyline): string {
   const vertexData = pline.vertexData();

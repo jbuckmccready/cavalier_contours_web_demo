@@ -39,6 +39,17 @@ pub fn on_load() {
     utils::set_panic_hook();
 }
 
+#[wasm_bindgen(js_name = "plineParallelOffset")]
+pub fn pline_parallel_offset(pline: JsValue, offset: f64, handle_self_intersects: bool) -> JsValue {
+    let pl: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline).unwrap();
+    let options = PlineOffsetOptions {
+        handle_self_intersects,
+        ..Default::default()
+    };
+    let offset_results = pl.parallel_offset_opt(offset, &options);
+    serde_wasm_bindgen::to_value(&offset_results).unwrap()
+}
+
 #[wasm_bindgen]
 pub struct StaticAABB2DIndex(cavc::StaticAABB2DIndex<f64>);
 
