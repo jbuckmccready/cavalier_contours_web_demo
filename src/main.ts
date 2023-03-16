@@ -28,6 +28,6 @@ const router = VueRouter.createRouter({
 wasm_init().then(() => {
   const app = createApp(App);
   app.use(router);
-  app.use(Quasar);
+  app.use(Quasar, {});
   app.mount("#app");
 });
