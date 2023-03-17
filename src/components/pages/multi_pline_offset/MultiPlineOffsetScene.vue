@@ -26,10 +26,7 @@ let inputPlines: Pline[] = JSON.parse(props.plineJsonStr);
 
 function drawToScene(renderer: SceneRenderer) {
   console.log("drawToScene");
-  for (let i = 0; i < inputPlines.length; i++) {
-    let pl = inputPlines[i];
-    drawOffsetScene(renderer, pl, props.model);
-  }
+  drawOffsetScene(renderer, inputPlines, props.model);
 }
 
 let grabbedVertexIndex = -1;

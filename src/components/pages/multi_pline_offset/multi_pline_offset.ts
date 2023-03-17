@@ -1,5 +1,5 @@
 import { Point, SceneRenderer, SimpleColors } from "@/components/canvas_scene/scene_renderer";
-import { Polyline } from "cavalier_contours_web_ffi";
+import { Polyline, multiPlineParallelOffset } from "cavalier_contours_web_ffi";
 import { HIT_DELTA } from "@/components/canvas_scene/scene_renderer";
 import * as utils from "@/core/utils";
 import { Pline } from "@/core/cavc_types";
@@ -53,19 +53,40 @@ export type OffsetDemoState = OffsetModeData &
   RawOffsetModeData &
   RawOffsetSegsModeData & { type: OffsetDemoMode };
 
-export function drawOffsetScene(scene: SceneRenderer, pline: Pline, model: OffsetDemoModel) {
-  // draw vertexes
-  const vertexes = pline.vertexes;
-  for (let i = 0; i < vertexes.length; i++) {
-    let vertex = vertexes[i];
-    scene.drawScaledRect(vertex[0], vertex[1], HIT_DELTA, HIT_DELTA, {
-      fill: true,
-      color: SimpleColors.Black,
-    });
+export function drawOffsetScene(scene: SceneRenderer, plines: Pline[], model: OffsetDemoModel) {
+  for (let i = 0; i < plines.length; i++) {
+    const pline = plines[i];
+    const vertexes = pline.vertexes;
+    for (let j = 0; j < vertexes.length; j++) {
+      let vertex = vertexes[j];
+      scene.drawScaledRect(vertex[0], vertex[1], HIT_DELTA, HIT_DELTA, {
+        fill: true,
+        color: SimpleColors.Black,
+      });
+    }
+
+    // draw polyline
+    scene.drawPline(pline, { color: SimpleColors.Black });
   }
 
-  // draw polyline
-  scene.drawPline(pline, { color: SimpleColors.Black });
+  let result: { ccwPlines: Polyline[]; cwPlines: Polyline[] } = multiPlineParallelOffset(
+    plines,
+    model.offset
+  );
+
+  result.ccwPlines.forEach((pl) => {
+    scene.drawCavcPolyline(pl, {
+      color: SimpleColors.Blue,
+    });
+    pl.free();
+  });
+
+  result.cwPlines.forEach((pl) => {
+    scene.drawCavcPolyline(pl, {
+      color: SimpleColors.Red,
+    });
+    pl.free();
+  });
   //   const m = model;
   //   switch (m.type) {
   //     case OffsetDemoMode.Offset:

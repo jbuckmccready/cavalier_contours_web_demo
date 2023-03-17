@@ -62,8 +62,26 @@ pub fn pline_arcs_to_approx_lines(pline: JsValue, error_distance: f64) -> JsValu
 pub fn mutli_pline_parallel_offset(plines: JsValue, offset: f64) -> JsValue {
     let pl: Vec<cavc::Polyline<f64>> = serde_wasm_bindgen::from_value(plines).unwrap();
     let shape = Shape::from_plines(pl);
-    let result = shape.parallel_offset(offset).unwrap();
-    serde_wasm_bindgen::to_value(&result).unwrap()
+    let (result, d) = shape.parallel_offset(offset).unwrap();
+
+    console_log!("{d:?}");
+
+    let ccw_plines = js_sys::Array::new();
+    for pl in result.ccw_plines {
+        ccw_plines.push(&JsValue::from(Polyline(pl.polyline)));
+    }
+
+    let cw_plines = js_sys::Array::new();
+    for pl in result.cw_plines {
+        cw_plines.push(&JsValue::from(Polyline(pl.polyline)));
+    }
+
+    let result = js_sys::Object::new();
+
+    js_sys::Reflect::set(&result, &"ccwPlines".into(), &ccw_plines).unwrap();
+    js_sys::Reflect::set(&result, &"cwPlines".into(), &cw_plines).unwrap();
+
+    result.into()
 }
 
 #[wasm_bindgen]
