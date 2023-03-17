@@ -1,5 +1,6 @@
 import type { Polyline } from "cavalier_contours_web_ffi";
 import { inject, InjectionKey } from "vue";
+import { Pline } from "./cavc_types";
 
 /// Strict type checked injection.
 export function injectStrict<T>(key: InjectionKey<T>, fallback?: T): T {
@@ -82,6 +83,31 @@ export function jsonStrToPlineArray(jsonStr: string): {
   } catch {
     return { array: new Float64Array(), isClosed: false };
   }
+}
+
+export function plineToJsonStr(pline: Pline): string {
+  const f = (k: string, v: Pline) => {
+    if (k !== "vertexes" && v instanceof Array) {
+      return JSON.stringify(v);
+    }
+    return v;
+  };
+  return JSON.stringify(pline, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
+}
+
+export function plinesToJsonStr(plines: Pline[]): string {
+  let root = true;
+  const f = (k: string, v: Pline) => {
+    if (root) {
+      root = false;
+      return v;
+    }
+    if (k !== "vertexes" && v instanceof Array) {
+      return JSON.stringify(v);
+    }
+    return v;
+  };
+  return JSON.stringify(plines, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
 }
 
 /// TODO: Doc

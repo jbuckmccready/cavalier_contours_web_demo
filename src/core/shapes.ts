@@ -128,3 +128,46 @@ export function createPathologicalExample1(
 
   return result;
 }
+
+export function example1JsonStr(): string {
+  return `{
+  "isClosed": true, 
+  "vertexes": [
+    [100, 100, -0.5], 
+    [80, 90, 0.374794619217547], 
+    [210, 0, 0], 
+    [230, 0, 1], 
+    [320, 0, -0.5], 
+    [280, 0, 0.5], 
+    [390, 210, 0], 
+    [280, 120, 0.5]
+  ]
+}`;
+}
+
+export function multiPlineExample1JsonStr(): string {
+  return `[
+  {
+    "isClosed": true, 
+    "vertexes": [
+      [100, 100, -0.5], 
+      [80, 90, 0.374794619217547], 
+      [210, 0, 0], 
+      [230, 0, 1], 
+      [320, 0, -0.5], 
+      [280, 0, 0.5], 
+      [390, 210, 0], 
+      [280, 120, 0.5]
+    ]
+  },
+  {
+    "isClosed": true, 
+    "vertexes": [
+      [150, 50, 0], 
+      [150, 100, 0], 
+      [200, 100, 0], 
+      [200, 50, 0] 
+    ]
+  }
+]`;
+}

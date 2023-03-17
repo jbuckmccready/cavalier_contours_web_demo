@@ -9,6 +9,7 @@ use cavalier_contours::{
         },
         seg_arc_radius_and_center, PlineCreation, PlineOffsetOptions, PlineSource, PlineSourceMut,
     },
+    shape_algorithms::Shape,
     static_aabb2d_index::Control,
 };
 use js_sys::{Float64Array, Uint32Array};
@@ -46,8 +47,23 @@ pub fn pline_parallel_offset(pline: JsValue, offset: f64, handle_self_intersects
         handle_self_intersects,
         ..Default::default()
     };
-    let offset_results = pl.parallel_offset_opt(offset, &options);
-    serde_wasm_bindgen::to_value(&offset_results).unwrap()
+    let result = pl.parallel_offset_opt(offset, &options);
+    serde_wasm_bindgen::to_value(&result).unwrap()
+}
+
+#[wasm_bindgen(js_name = "plineArcsToApproxLines")]
+pub fn pline_arcs_to_approx_lines(pline: JsValue, error_distance: f64) -> JsValue {
+    let pl: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline).unwrap();
+    let result = pl.arcs_to_approx_lines(error_distance).unwrap();
+    serde_wasm_bindgen::to_value(&result).unwrap()
+}
+
+#[wasm_bindgen(js_name = "multiPlineParallelOffset")]
+pub fn mutli_pline_parallel_offset(plines: JsValue, offset: f64) -> JsValue {
+    let pl: Vec<cavc::Polyline<f64>> = serde_wasm_bindgen::from_value(plines).unwrap();
+    let shape = Shape::from_plines(pl);
+    let result = shape.parallel_offset(offset).unwrap();
+    serde_wasm_bindgen::to_value(&result).unwrap()
 }
 
 #[wasm_bindgen]

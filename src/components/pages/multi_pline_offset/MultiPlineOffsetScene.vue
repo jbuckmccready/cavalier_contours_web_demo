@@ -3,12 +3,13 @@ import { ref, unref, watch } from "vue";
 import { HIT_DELTA, Point, SceneRenderer } from "@/components/canvas_scene/scene_renderer";
 import * as utils from "@/core/utils";
 import CanvasScene from "@/components/canvas_scene/CanvasScene.vue";
-import { Polyline, createPline } from "cavalier_contours_web_ffi";
+import { Polyline, plineParallelOffset } from "cavalier_contours_web_ffi";
 import {
   OffsetDemoMode,
   drawOffsetScene,
   OffsetDemoModel,
 } from "@/components/pages/multi_pline_offset/multi_pline_offset";
+import { Pline } from "@/core/cavc_types";
 
 interface Props {
   model: OffsetDemoModel;
@@ -21,15 +22,13 @@ const emit = defineEmits<{
 }>();
 
 const canvasSceneRef = ref<typeof CanvasScene>();
-let inputPlines = utils.jsonStrToMultiplePlineArrays(props.plineJsonStr);
+let inputPlines: Pline[] = JSON.parse(props.plineJsonStr);
 
 function drawToScene(renderer: SceneRenderer) {
   console.log("drawToScene");
-  let x = createPline();
-  console.log(x);
   for (let i = 0; i < inputPlines.length; i++) {
     let pl = inputPlines[i];
-    drawOffsetScene(renderer, pl.array, pl.isClosed, props.model);
+    drawOffsetScene(renderer, pl, props.model);
   }
 }
 
@@ -38,9 +37,9 @@ let grabbedPlineIndex = -1;
 
 const dragBeginHandler = (payload: { pt: Point; renderer: SceneRenderer; handled: boolean }) => {
   for (let i = 0; i < inputPlines.length; i++) {
-    let plineArray = inputPlines[i].array;
-    for (let j = 0; j < plineArray.length; j += 3) {
-      let vertexPt = { x: plineArray[j], y: plineArray[j + 1] };
+    let plineVertexes = inputPlines[i].vertexes;
+    for (let j = 0; j < plineVertexes.length; j++) {
+      let vertexPt = { x: plineVertexes[j][0], y: plineVertexes[j][1] };
       if (payload.renderer.scaledHitTest(payload.pt, vertexPt, HIT_DELTA)) {
         grabbedPlineIndex = i;
         grabbedVertexIndex = j;
@@ -51,18 +50,19 @@ const dragBeginHandler = (payload: { pt: Point; renderer: SceneRenderer; handled
 };
 
 const draggingHandler = (payload: { pt: Point; renderer: SceneRenderer }) => {
-  // if (grabbedPlineIndex < 0 || grabbedVertexIndex < 0) {
-  //   return;
-  // }
-  // let plineArray = inputPlines[grabbedPlineIndex].array;
-  // plineArray[grabbedVertexIndex] = payload.pt.x;
-  // plineArray[grabbedVertexIndex + 1] = payload.pt.y;
-  // emit("update:plineJsonStr", utils.plineArrayToJsonStr(plineArray, pline1IsClosed));
+  if (grabbedPlineIndex < 0 || grabbedVertexIndex < 0) {
+    return;
+  }
+  let plineVertexes = inputPlines[grabbedPlineIndex].vertexes;
+  plineVertexes[grabbedVertexIndex][0] = payload.pt.x;
+  plineVertexes[grabbedVertexIndex][1] = payload.pt.y;
+  emit("update:plineJsonStr", utils.plinesToJsonStr(inputPlines));
   //   scene will be redrawn due to plineJsonStr update
 };
 
 const dragReleaseHandler = () => {
   grabbedVertexIndex = -1;
+  grabbedPlineIndex = -1;
 };
 
 watch(props.model, () => {
@@ -72,8 +72,7 @@ watch(props.model, () => {
 watch(
   () => props.plineJsonStr,
   () => {
-    inputPlines = utils.jsonStrToMultiplePlineArrays(props.plineJsonStr);
-    console.log(inputPlines);
+    inputPlines = JSON.parse(props.plineJsonStr);
     const scene = utils.valueOrThrow(unref(canvasSceneRef));
     scene.requestRender();
   }
