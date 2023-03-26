@@ -244,12 +244,12 @@ impl Polyline {
 
     #[wasm_bindgen(js_name = "createApproxSpatialIndex")]
     pub fn create_approx_aabb_index(&self) -> StaticAABB2DIndex {
-        StaticAABB2DIndex(self.0.create_approx_aabb_index().unwrap())
+        StaticAABB2DIndex(self.0.create_approx_aabb_index())
     }
 
     #[wasm_bindgen(js_name = "createSpatialIndex")]
     pub fn create_aabb_index(&self) -> StaticAABB2DIndex {
-        StaticAABB2DIndex(self.0.create_aabb_index().unwrap())
+        StaticAABB2DIndex(self.0.create_aabb_index())
     }
 
     pub fn extents(&self) -> Box<[f64]> {
@@ -330,7 +330,7 @@ impl Polyline {
         if self.0.is_empty() {
             return result;
         }
-        let aabb_index = self.0.create_approx_aabb_index().unwrap();
+        let aabb_index = self.0.create_approx_aabb_index();
         let intrs = all_self_intersects_as_basic(&self.0, &aabb_index, true, 1e-5);
         for intr in intrs {
             result.push(&vector2_into_jsvalue(intr.point));
