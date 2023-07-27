@@ -51,6 +51,22 @@ pub fn pline_parallel_offset(pline: JsValue, offset: f64, handle_self_intersects
     serde_wasm_bindgen::to_value(&result).unwrap()
 }
 
+#[wasm_bindgen(js_name = "plineFindIntersects")]
+pub fn pline_find_intersects(pline1: JsValue, pline2: JsValue) -> js_sys::Array {
+    let pl1: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline1).unwrap();
+    let pl2: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline2).unwrap();
+    let intrs_result = pl1.find_intersects(&pl2);
+    let result = js_sys::Array::new();
+    for intr in intrs_result.basic_intersects {
+        result.push(&vector2_into_jsvalue(intr.point));
+    }
+    for overlapping_intr in intrs_result.overlapping_intersects {
+        result.push(&vector2_into_jsvalue(overlapping_intr.point1));
+        result.push(&vector2_into_jsvalue(overlapping_intr.point2));
+    }
+    result
+}
+
 #[wasm_bindgen(js_name = "plineArcsToApproxLines")]
 pub fn pline_arcs_to_approx_lines(pline: JsValue, error_distance: f64) -> JsValue {
     let pl: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline).unwrap();
@@ -62,9 +78,7 @@ pub fn pline_arcs_to_approx_lines(pline: JsValue, error_distance: f64) -> JsValu
 pub fn mutli_pline_parallel_offset(plines: JsValue, offset: f64) -> JsValue {
     let pl: Vec<cavc::Polyline<f64>> = serde_wasm_bindgen::from_value(plines).unwrap();
     let shape = Shape::from_plines(pl);
-    let (result, d) = shape.parallel_offset(offset).unwrap();
-
-    console_log!("{d:?}");
+    let result = shape.parallel_offset(offset, Default::default());
 
     let ccw_plines = js_sys::Array::new();
     for pl in result.ccw_plines {
@@ -289,12 +303,12 @@ impl Polyline {
 
     #[wasm_bindgen(js_name = "createApproxSpatialIndex")]
     pub fn create_approx_aabb_index(&self) -> StaticAABB2DIndex {
-        StaticAABB2DIndex(self.0.create_approx_aabb_index().unwrap())
+        StaticAABB2DIndex(self.0.create_approx_aabb_index())
     }
 
     #[wasm_bindgen(js_name = "createSpatialIndex")]
     pub fn create_aabb_index(&self) -> StaticAABB2DIndex {
-        StaticAABB2DIndex(self.0.create_aabb_index().unwrap())
+        StaticAABB2DIndex(self.0.create_aabb_index())
     }
 
     pub fn extents(&self) -> Box<[f64]> {
@@ -375,7 +389,7 @@ impl Polyline {
         if self.0.is_empty() {
             return result;
         }
-        let aabb_index = self.0.create_approx_aabb_index().unwrap();
+        let aabb_index = self.0.create_approx_aabb_index();
         let intrs = all_self_intersects_as_basic(&self.0, &aabb_index, true, 1e-5);
         for intr in intrs {
             result.push(&vector2_into_jsvalue(intr.point));

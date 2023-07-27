@@ -1,6 +1,6 @@
 import type { Polyline } from "cavalier_contours_web_ffi";
 import { inject, InjectionKey } from "vue";
-import { Pline } from "./cavc_types";
+import { Pline } from "./cavc_json_types";
 
 /// Strict type checked injection.
 export function injectStrict<T>(key: InjectionKey<T>, fallback?: T): T {
@@ -110,64 +110,6 @@ export function plinesToJsonStr(plines: Pline[]): string {
   return JSON.stringify(plines, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
 }
 
-/// TODO: Doc
-// export function multiPlineArrayToJsonStr(
-//   plines: {
-//     array: Float64Array;
-//     isClosed: boolean;
-//   }[]
-// ): string {
-//   const result = [];
-//   for (let i = 0; i < plines.length; i++) {
-//     const array = plines[i].array;
-//     const isClosed = plines[i].isClosed;
-//     const obj = {
-//       isClosed: isClosed,
-//       vertexes: new Array<Array<number>>(),
-//     };
-//     for (let i = 0; i < array.length; i += 3) {
-//       const v = [array[i], array[i + 1], array[i + 2]];
-//       obj.vertexes.push(v);
-//     }
-
-//     const f = (k: string, v: { isClosed: boolean; vertexes: number[][] }) => {
-//       if (k !== "vertexes" && v instanceof Array) {
-//         return JSON.stringify(v);
-//       }
-//       return v;
-//     };
-//   }
-//     return JSON.stringify(result, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
-// }
-
-/// TODO: Doc
-export function jsonStrToMultiplePlineArrays(jsonStr: string): {
-  array: Float64Array;
-  isClosed: boolean;
-}[] {
-  try {
-    const inputPlines = JSON.parse(jsonStr);
-    let plines = [];
-    for (let i = 0; i < inputPlines.length; i++) {
-      let inputPline = inputPlines[i];
-      const array = new Float64Array(inputPline.vertexes.length * 3);
-      inputPline.vertexes.forEach((v: number[], i: number) => {
-        const offset = i * 3;
-        array[offset] = v[0];
-        array[offset + 1] = v[1];
-        array[offset + 2] = v[2];
-      });
-
-      let p = { array: array, isClosed: inputPline.isClosed };
-      plines.push(p);
-    }
-
-    return plines;
-  } catch {
-    return [];
-  }
-}
-
 /// Create rust code string for declaring pline
 export function createPlineRustCodeStr(pline: Polyline): string {
   const vertexData = pline.vertexData();
@@ -195,4 +137,13 @@ export function createPlineTestPropertiesRustCodeStr(pline: Polyline): string {
 
 export function createPlinePropertiesSetRustCodeStr(plines: Polyline[]): string {
   return "[" + plines.map((pline) => createPlineTestPropertiesRustCodeStr(pline)).join(", ") + "]";
+}
+
+export function jsonPlineFromCavcPolyline(polyline: Polyline): Pline {
+  let result: Pline = { isClosed: polyline.isClosed, vertexes: [] };
+  const vertexData = polyline.vertexData();
+  for (let i = 0; i < vertexData.length; i += 3) {
+    result.vertexes.push([vertexData[i], vertexData[i + 1], vertexData[i + 2]]);
+  }
+  return result;
 }

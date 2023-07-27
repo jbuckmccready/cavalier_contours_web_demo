@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { Polyline, plineArcsToApproxLines } from "cavalier_contours_web_ffi";
-import { Pline } from "@/core/cavc_types";
+import { Pline } from "@/core/cavc_json_types";
 
 export enum SimpleColors {
   White = 0xffffff,

@@ -45,14 +45,8 @@ const copyRustTestCode = () => {
           :min="0"
           :max="100"
         />
-        <CheckBox
-          v-if="state.type === OffsetDemoMode.Offset"
-          v-model="state.handleSelfIntersects"
-          label="Handle Self Intersects"
-        />
         <div v-if="state.type === OffsetDemoMode.RawOffset">
-          <CheckBox v-model="state.showDualRawOffset" label="Show Dual Raw Offset" />
-          <CheckBox v-model="state.showRawOffsetIntersects" label="Show Self Intersects" />
+          <CheckBox v-model="state.showRawOffsetIntersects" label="Show Intersects" />
         </div>
         <PlineJsonEditor
           :model-value="state.plineJsonStr"

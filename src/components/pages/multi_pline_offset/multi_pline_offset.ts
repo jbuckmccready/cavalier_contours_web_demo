@@ -1,16 +1,20 @@
 import { Point, SceneRenderer, SimpleColors } from "@/components/canvas_scene/scene_renderer";
-import { Polyline, multiPlineParallelOffset } from "cavalier_contours_web_ffi";
+import {
+  Polyline,
+  multiPlineParallelOffset,
+  plineParallelOffset,
+  plineFindIntersects,
+} from "cavalier_contours_web_ffi";
 import { HIT_DELTA } from "@/components/canvas_scene/scene_renderer";
 import * as utils from "@/core/utils";
-import { Pline } from "@/core/cavc_types";
+import { Pline } from "@/core/cavc_json_types";
 
 export enum OffsetDemoMode {
   Offset = "Offset",
   RawOffset = "Raw Offset",
-  RawOffsetSegs = "Raw Offset Segments",
 }
 export function allDemoModes(): OffsetDemoMode[] {
-  return [OffsetDemoMode.Offset, OffsetDemoMode.RawOffset, OffsetDemoMode.RawOffsetSegs];
+  return [OffsetDemoMode.Offset, OffsetDemoMode.RawOffset];
 }
 
 export function allDemoModesAsStrings(): string[] {
@@ -25,7 +29,6 @@ export type BaseModelData = {
 
 export type OffsetModeData = BaseModelData & {
   repeatOffsetCount: number;
-  handleSelfIntersects: boolean;
 };
 
 export type OffsetModeModel = OffsetModeData & {
@@ -33,7 +36,6 @@ export type OffsetModeModel = OffsetModeData & {
 };
 
 export type RawOffsetModeData = BaseModelData & {
-  showDualRawOffset: boolean;
   showRawOffsetIntersects: boolean;
 };
 export type RawOffsetModeModel = RawOffsetModeData & {
@@ -41,12 +43,9 @@ export type RawOffsetModeModel = RawOffsetModeData & {
 };
 
 export type RawOffsetSegsModeData = BaseModelData;
-export type RawOffsetSegsModeModel = RawOffsetModeData & {
-  readonly type: OffsetDemoMode.RawOffsetSegs;
-};
 
 /// Union representing the different demo modes associated model data.
-export type OffsetDemoModel = OffsetModeModel | RawOffsetModeModel | RawOffsetSegsModeModel;
+export type OffsetDemoModel = OffsetModeModel | RawOffsetModeModel;
 
 /// Type that can hold all the properties for all the demo mode cases.
 export type OffsetDemoState = OffsetModeData &
@@ -69,92 +68,70 @@ export function drawOffsetScene(scene: SceneRenderer, plines: Pline[], model: Of
     scene.drawPline(pline, { color: SimpleColors.Black });
   }
 
-  let result: { ccwPlines: Polyline[]; cwPlines: Polyline[] } = multiPlineParallelOffset(
-    plines,
-    model.offset
-  );
+  const m = model;
+  switch (m.type) {
+    case OffsetDemoMode.RawOffset:
+      let offsetResults: Pline[] = [];
+      plines.forEach((p) => {
+        let results: Pline[] = plineParallelOffset(p, m.offset, false);
+        results.forEach((r) => offsetResults.push(r));
+        results.forEach((r) => {
+          scene.drawPline(r, { color: SimpleColors.Blue });
+        });
+      });
 
-  result.ccwPlines.forEach((pl) => {
-    scene.drawCavcPolyline(pl, {
-      color: SimpleColors.Blue,
-    });
-    pl.free();
-  });
+      if (m.showRawOffsetIntersects) {
+        for (let i = 0; i < offsetResults.length; i++) {
+          for (let j = i + 1; j < offsetResults.length; j++) {
+            let intersectPoints: Point[] = plineFindIntersects(offsetResults[i], offsetResults[j]);
+            intersectPoints.forEach((p) => {
+              scene.drawScaledRect(p.x, p.y, HIT_DELTA, HIT_DELTA, {
+                fill: true,
+                color: SimpleColors.Red,
+              });
+            });
+          }
+        }
+      }
 
-  result.cwPlines.forEach((pl) => {
-    scene.drawCavcPolyline(pl, {
-      color: SimpleColors.Red,
-    });
-    pl.free();
-  });
-  //   const m = model;
-  //   switch (m.type) {
-  //     case OffsetDemoMode.Offset:
-  //       // draw offsets
-  //       if (m.repeatOffsetCount > 0) {
-  //         const isCCWPline = pline.area() > 0;
-  //         let offsetResults: Polyline[] = pline.parallelOffset(m.offset, m.handleSelfIntersects);
-  //         let nextResults: Polyline[] = [];
-  //         let offsetCount = 0;
-  //         while (offsetResults.length !== 0 && offsetCount < m.repeatOffsetCount) {
-  //           for (let i = 0; i < offsetResults.length; ++i) {
-  //             if (pline1IsClosed) {
-  //               const offsetIsCCW = offsetResults[i].area() > 0;
-  //               if (isCCWPline !== offsetIsCCW) {
-  //                 scene.drawCavcPolyline(offsetResults[i], {
-  //                   color: SimpleColors.Red,
-  //                 });
-  //                 continue;
-  //               }
-  //             }
-  //             scene.drawCavcPolyline(offsetResults[i], {
-  //               color: SimpleColors.Blue,
-  //             });
-  //             offsetResults[i]
-  //               .parallelOffset(m.offset, m.handleSelfIntersects)
-  //               .forEach((o: Polyline) => nextResults.push(o));
-  //           }
-  //           offsetCount += 1;
-  //           offsetResults.forEach((p) => p.free());
-  //           offsetResults = nextResults;
-  //           nextResults = [];
-  //         }
-  //         offsetResults.forEach((p) => p.free());
-  //       }
-  //       break;
-  //     case OffsetDemoMode.RawOffset: {
-  //       const drawRawOffset = (
-  //         pline: Polyline,
-  //         offset: number,
-  //         drawIntersects: boolean,
-  //         color: number
-  //       ) => {
-  //         const rawOffsetPline = pline.rawOffset(offset);
-  //         scene.drawCavcPolyline(rawOffsetPline, { color: color });
-  //         if (drawIntersects) {
-  //           const selfIntrs: Point[] = rawOffsetPline.selfIntersects();
-  //           for (let i = 0; i < selfIntrs.length; ++i) {
-  //             const p = selfIntrs[i];
-  //             scene.drawScaledRect(p.x, p.y, HIT_DELTA, HIT_DELTA, {
-  //               fill: true,
-  //               color: SimpleColors.Red,
-  //             });
-  //           }
-  //         }
-  //         rawOffsetPline.free();
-  //       };
-  //       drawRawOffset(pline, m.offset, m.showRawOffsetIntersects, SimpleColors.Green);
-  //       if (m.showDualRawOffset) {
-  //         drawRawOffset(pline, -m.offset, m.showRawOffsetIntersects, SimpleColors.Purple);
-  //       }
-  //       break;
-  //     }
-  //     case OffsetDemoMode.RawOffsetSegs: {
-  //       scene.drawCavcRawOffsetSegs(pline, m.offset);
-  //       break;
-  //     }
-  //     default:
-  //       utils.assertExhaustive(m);
-  //   }
-  //   pline.free();
+      break;
+    case OffsetDemoMode.Offset:
+      let result: { ccwPlines: Polyline[]; cwPlines: Polyline[] } = multiPlineParallelOffset(
+        plines,
+        model.offset
+      );
+
+      let offsetCount = 0;
+
+      while (
+        (result.ccwPlines.length !== 0 || result.cwPlines.length !== 0) &&
+        offsetCount < m.repeatOffsetCount
+      ) {
+        let nextInput: Pline[] = [];
+        result.ccwPlines.forEach((pl) => {
+          scene.drawCavcPolyline(pl, {
+            color: SimpleColors.Blue,
+          });
+          nextInput.push(utils.jsonPlineFromCavcPolyline(pl));
+          pl.free();
+        });
+
+        result.cwPlines.forEach((pl) => {
+          scene.drawCavcPolyline(pl, {
+            color: SimpleColors.Red,
+          });
+          nextInput.push(utils.jsonPlineFromCavcPolyline(pl));
+          pl.free();
+        });
+
+        result = multiPlineParallelOffset(nextInput, m.offset);
+        offsetCount += 1;
+      }
+
+      result.ccwPlines.forEach((p) => p.free());
+      result.cwPlines.forEach((p) => p.free());
+      break;
+    default:
+      utils.assertExhaustive(m);
+  }
 }

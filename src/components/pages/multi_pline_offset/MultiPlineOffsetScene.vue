@@ -3,13 +3,12 @@ import { ref, unref, watch } from "vue";
 import { HIT_DELTA, Point, SceneRenderer } from "@/components/canvas_scene/scene_renderer";
 import * as utils from "@/core/utils";
 import CanvasScene from "@/components/canvas_scene/CanvasScene.vue";
-import { Polyline, plineParallelOffset } from "cavalier_contours_web_ffi";
+import { Polyline, multiPlineParallelOffset } from "cavalier_contours_web_ffi";
 import {
-  OffsetDemoMode,
   drawOffsetScene,
   OffsetDemoModel,
 } from "@/components/pages/multi_pline_offset/multi_pline_offset";
-import { Pline } from "@/core/cavc_types";
+import { Pline, plineToRustCode } from "@/core/cavc_json_types";
 
 interface Props {
   model: OffsetDemoModel;
@@ -25,7 +24,6 @@ const canvasSceneRef = ref<typeof CanvasScene>();
 let inputPlines: Pline[] = JSON.parse(props.plineJsonStr);
 
 function drawToScene(renderer: SceneRenderer) {
-  console.log("drawToScene");
   drawOffsetScene(renderer, inputPlines, props.model);
 }
 
@@ -76,18 +74,28 @@ watch(
 );
 
 const getRustTestCodeString = () => {
-  //   const model = props.model;
-  //   const handleSelfIntersects =
-  //     model.type === OffsetDemoMode.Offset ? model.handleSelfIntersects : true;
-  //   let pline1 = new Polyline(pline1Array, pline1IsClosed);
-  //   let offsetResults = pline1.parallelOffset(model.offset, handleSelfIntersects);
-  //   let inputPlineStr = utils.createPlineRustCodeStr(pline1);
-  //   let testPropertiesStr = utils.createPlinePropertiesSetRustCodeStr(offsetResults);
-  //   let result = `(${inputPlineStr}, ${utils.toRustf64Str(model.offset)}) =>
-  //                     ${testPropertiesStr}`;
-  //   offsetResults.forEach((r) => r.free());
-  //   pline1.free();
-  //   return result;
+  let inputArr: string[] = [];
+  inputPlines.forEach((p) => {
+    inputArr.push(plineToRustCode(p));
+  });
+  let inputPlinesStr = "[" + inputArr.join(",\n") + "]";
+  const model = props.model;
+  let offsetResults: { ccwPlines: Polyline[]; cwPlines: Polyline[] } = multiPlineParallelOffset(
+    inputPlines,
+    model.offset
+  );
+  let resultPlines = offsetResults.ccwPlines.concat(offsetResults.cwPlines);
+  let testPropertiesStr = utils.createPlinePropertiesSetRustCodeStr(resultPlines);
+  offsetResults.ccwPlines.forEach((p) => {
+    p.free();
+  });
+  offsetResults.cwPlines.forEach((p) => {
+    p.free();
+  });
+
+  let result = `(${inputPlinesStr}, ${utils.toRustf64Str(model.offset)}) =>
+                      ${testPropertiesStr}`;
+  return result;
 };
 
 defineExpose({
