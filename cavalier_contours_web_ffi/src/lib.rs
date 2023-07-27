@@ -9,6 +9,7 @@ use cavalier_contours::{
         },
         seg_arc_radius_and_center, PlineCreation, PlineOffsetOptions, PlineSource, PlineSourceMut,
     },
+    shape_algorithms::Shape,
     static_aabb2d_index::Control,
 };
 use js_sys::{Float64Array, Uint32Array};
@@ -37,6 +38,64 @@ macro_rules! console_log {
 #[wasm_bindgen(start)]
 pub fn on_load() {
     utils::set_panic_hook();
+}
+
+#[wasm_bindgen(js_name = "plineParallelOffset")]
+pub fn pline_parallel_offset(pline: JsValue, offset: f64, handle_self_intersects: bool) -> JsValue {
+    let pl: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline).unwrap();
+    let options = PlineOffsetOptions {
+        handle_self_intersects,
+        ..Default::default()
+    };
+    let result = pl.parallel_offset_opt(offset, &options);
+    serde_wasm_bindgen::to_value(&result).unwrap()
+}
+
+#[wasm_bindgen(js_name = "plineFindIntersects")]
+pub fn pline_find_intersects(pline1: JsValue, pline2: JsValue) -> js_sys::Array {
+    let pl1: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline1).unwrap();
+    let pl2: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline2).unwrap();
+    let intrs_result = pl1.find_intersects(&pl2);
+    let result = js_sys::Array::new();
+    for intr in intrs_result.basic_intersects {
+        result.push(&vector2_into_jsvalue(intr.point));
+    }
+    for overlapping_intr in intrs_result.overlapping_intersects {
+        result.push(&vector2_into_jsvalue(overlapping_intr.point1));
+        result.push(&vector2_into_jsvalue(overlapping_intr.point2));
+    }
+    result
+}
+
+#[wasm_bindgen(js_name = "plineArcsToApproxLines")]
+pub fn pline_arcs_to_approx_lines(pline: JsValue, error_distance: f64) -> JsValue {
+    let pl: cavc::Polyline<f64> = serde_wasm_bindgen::from_value(pline).unwrap();
+    let result = pl.arcs_to_approx_lines(error_distance).unwrap();
+    serde_wasm_bindgen::to_value(&result).unwrap()
+}
+
+#[wasm_bindgen(js_name = "multiPlineParallelOffset")]
+pub fn mutli_pline_parallel_offset(plines: JsValue, offset: f64) -> JsValue {
+    let pl: Vec<cavc::Polyline<f64>> = serde_wasm_bindgen::from_value(plines).unwrap();
+    let shape = Shape::from_plines(pl);
+    let result = shape.parallel_offset(offset, Default::default());
+
+    let ccw_plines = js_sys::Array::new();
+    for pl in result.ccw_plines {
+        ccw_plines.push(&JsValue::from(Polyline(pl.polyline)));
+    }
+
+    let cw_plines = js_sys::Array::new();
+    for pl in result.cw_plines {
+        cw_plines.push(&JsValue::from(Polyline(pl.polyline)));
+    }
+
+    let result = js_sys::Object::new();
+
+    js_sys::Reflect::set(&result, &"ccwPlines".into(), &ccw_plines).unwrap();
+    js_sys::Reflect::set(&result, &"cwPlines".into(), &cw_plines).unwrap();
+
+    result.into()
 }
 
 #[wasm_bindgen]

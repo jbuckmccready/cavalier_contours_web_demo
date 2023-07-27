@@ -1,5 +1,6 @@
 import type { Polyline } from "cavalier_contours_web_ffi";
 import { inject, InjectionKey } from "vue";
+import { Pline } from "./cavc_json_types";
 
 /// Strict type checked injection.
 export function injectStrict<T>(key: InjectionKey<T>, fallback?: T): T {
@@ -84,6 +85,31 @@ export function jsonStrToPlineArray(jsonStr: string): {
   }
 }
 
+export function plineToJsonStr(pline: Pline): string {
+  const f = (k: string, v: Pline) => {
+    if (k !== "vertexes" && v instanceof Array) {
+      return JSON.stringify(v);
+    }
+    return v;
+  };
+  return JSON.stringify(pline, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
+}
+
+export function plinesToJsonStr(plines: Pline[]): string {
+  let root = true;
+  const f = (k: string, v: Pline) => {
+    if (root) {
+      root = false;
+      return v;
+    }
+    if (k !== "vertexes" && v instanceof Array) {
+      return JSON.stringify(v);
+    }
+    return v;
+  };
+  return JSON.stringify(plines, f, 2).replace(/"\[/g, "[").replace(/]"/g, "]").replace(/,/g, ", ");
+}
+
 /// Create rust code string for declaring pline
 export function createPlineRustCodeStr(pline: Polyline): string {
   const vertexData = pline.vertexData();
@@ -111,4 +137,13 @@ export function createPlineTestPropertiesRustCodeStr(pline: Polyline): string {
 
 export function createPlinePropertiesSetRustCodeStr(plines: Polyline[]): string {
   return "[" + plines.map((pline) => createPlineTestPropertiesRustCodeStr(pline)).join(", ") + "]";
+}
+
+export function jsonPlineFromCavcPolyline(polyline: Polyline): Pline {
+  let result: Pline = { isClosed: polyline.isClosed, vertexes: [] };
+  const vertexData = polyline.vertexData();
+  for (let i = 0; i < vertexData.length; i += 3) {
+    result.vertexes.push([vertexData[i], vertexData[i + 1], vertexData[i + 2]]);
+  }
+  return result;
 }

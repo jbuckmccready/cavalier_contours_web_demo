@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import { Polyline } from "cavalier_contours_web_ffi";
+import { Polyline, plineArcsToApproxLines } from "cavalier_contours_web_ffi";
+import { Pline } from "@/core/cavc_json_types";
 
 export enum SimpleColors {
   White = 0xffffff,
@@ -301,6 +302,35 @@ export class SceneRenderer {
     this.drawRect(x, y, width / scale, height / scale, options);
   }
 
+  drawPline(pline: Pline, options?: IRenderOptions): void {
+    const isClosed = pline.isClosed;
+    const color = options?.color ?? SimpleColors.Black;
+    const fill = options?.fill ?? false;
+    const g = this.getDrawingGraphics(options);
+
+    const lineData: Pline = plineArcsToApproxLines(pline, 1e-2);
+    const drawPath = () => {
+      const firstVertex = lineData.vertexes[0];
+      g.moveTo(firstVertex[0], firstVertex[1]);
+      for (let i = 1; i < lineData.vertexes.length; i++) {
+        const vertex = lineData.vertexes[i];
+        g.lineTo(vertex[0], vertex[1]);
+      }
+      if (isClosed) {
+        g.closePath();
+      }
+    };
+
+    if (fill) {
+      g.lineStyle(0);
+      g.beginFill(color);
+      drawPath();
+      g.endFill();
+    } else {
+      g.lineStyle(1 / this.currentScale, color);
+      drawPath();
+    }
+  }
   drawCavcPolyline(pline: Polyline, options?: IRenderOptions): void {
     const isClosed = pline.isClosed;
     const color = options?.color ?? SimpleColors.Black;
