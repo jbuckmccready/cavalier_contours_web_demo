@@ -9,7 +9,7 @@
 
 ARG RUST_VERSION=1.71.0
 ARG APP_NAME=cavalier_contours_server
-FROM rust:${RUST_VERSION}-slim-bullseye AS build
+FROM rust:${RUST_VERSION}-slim-bullseye AS build_backend
 ARG APP_NAME
 WORKDIR /app
 
@@ -29,6 +29,29 @@ RUN --mount=type=bind,source=backend/src,target=src \
 set -e
 cargo build --locked --release
 cp ./target/release/$APP_NAME /bin/server
+EOF
+
+FROM rust:${RUST_VERSION}-slim-bullseye AS build_frontend
+
+RUN apt-get update && \
+    apt-get install -yq --no-install-recommends \
+    curl
+
+RUN <<EOF
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+node --version
+npm --version
+npm install -g wasm-pack
+EOF
+
+RUN --mount=type=bind,source=frontend,target=frontend \
+    <<EOF
+cd frontend
+npm install
+npm run wasm
+npm run build
+cp -r ./dist /bin/index
 EOF
 
 ################################################################################
@@ -58,9 +81,8 @@ RUN adduser \
 USER appuser
 
 # Copy the executable from the "build" stage.
-COPY --from=build /bin/server /bin/
-
-EXPOSE $PORT
+COPY --from=build_backend /bin/server /bin/
+COPY --from=build_frontend /bin/index /bin/index
 
 # What the container should run when it is started.
 ENTRYPOINT ["/bin/server"]

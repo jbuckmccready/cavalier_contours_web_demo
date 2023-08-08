@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build && vue-tsc --noEmit",
     "preview": "vite preview",
     "wasm": "wasm-pack build ./cavalier_contours_web_ffi --target web",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
