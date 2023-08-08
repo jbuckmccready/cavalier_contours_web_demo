@@ -1,0 +1,19 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# rust build files
+cavalier_contours_web_ffi/pkg
+cavalier_contours_web_ffi/target
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
