@@ -45,9 +45,9 @@ npm --version
 npm install -g wasm-pack
 EOF
 
-RUN --mount=type=bind,source=frontend,target=frontend \
+RUN --mount=type=bind,source=frontend,target=build_dir \
     <<EOF
-cd frontend
+cd build_dir
 npm install
 npm run wasm
 npm run build
