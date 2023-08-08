@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  REGION: us-central1
+  IMAGE_NAME: web-demo/server
+  PROJECT_ID: cavaliercontours
+  SERVICE_NAME: server
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - uses: "actions/checkout@v3"
+
+      - id: "auth"
+        name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v1"
+        with:
+          workload_identity_provider: "projects/1094283756634/locations/global/workloadIdentityPools/githubrepowebdemoserver/providers/github"
+          service_account: "editor@cavaliercontours.iam.gserviceaccount.com"
+
+      - name: Authenticate for Docker
+        run: gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME:latest .
+
+      - name: Tag and Push Docker Image
+        run: |
+          docker tag $IMAGE_NAME:latest $REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE_NAME:latest
+          docker push $REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE_NAME:latest
+
+      - name: Deploy Image
+        run: gcloud run deploy $SERVICE_NAME --image=$REGION-docker.pkg.dev/$PROJECT_ID/$IMAGE_NAME:latest --region=$REGION
