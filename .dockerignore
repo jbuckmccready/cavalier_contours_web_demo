@@ -26,6 +26,11 @@
 **/npm-debug.log
 **/secrets.dev.yaml
 **/values.dev.yaml
+/firebase
+/backend/target
+/frontend/dist
+/frontend/cavalier_contours_web_ffi/pkg
+/frontend/cavalier_contours_web_ffi/target
 /bin
 /target
 LICENSE

@@ -11,7 +11,6 @@ ARG RUST_VERSION=1.71.0
 ARG APP_NAME=cavalier_contours_server
 FROM rust:${RUST_VERSION}-slim-bullseye AS build_backend
 ARG APP_NAME
-WORKDIR /app
 
 # Build the application.
 # Leverage a cache mount to /usr/local/cargo/registry/
@@ -32,6 +31,7 @@ cp ./target/release/$APP_NAME /bin/server
 EOF
 
 FROM rust:${RUST_VERSION}-slim-bullseye AS build_frontend
+WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -yq --no-install-recommends \
@@ -40,14 +40,12 @@ RUN apt-get update && \
 RUN <<EOF
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
-node --version
-npm --version
 npm install -g wasm-pack
 EOF
 
-RUN --mount=type=bind,source=frontend,target=build_dir \
-    <<EOF
-cd build_dir
+COPY ["frontend/", "./"]
+
+RUN <<EOF
 npm install
 npm run wasm
 npm run build
