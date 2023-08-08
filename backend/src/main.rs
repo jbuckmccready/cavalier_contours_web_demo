@@ -1,8 +1,10 @@
 use std::{net::SocketAddr, time::Duration};
 
 use poem::{
-    endpoint::StaticFilesEndpoint, listener::TcpListener, middleware::Tracing, EndpointExt, Route,
-    Server,
+    endpoint::StaticFilesEndpoint,
+    listener::TcpListener,
+    middleware::{Compression, Tracing},
+    EndpointExt, Route, Server,
 };
 
 #[tokio::main]
@@ -31,6 +33,7 @@ async fn main() -> Result<(), std::io::Error> {
             "/",
             StaticFilesEndpoint::new(page_dir).index_file("index.html"),
         )
+        .with(Compression::new())
         .with(Tracing);
 
     Server::new(TcpListener::bind(addr))
