@@ -18,7 +18,7 @@ export enum SimpleColors {
   Fuchsia = 0xc026d3,
 }
 
-export const VERTEX_DIM = 10;
+export const VERTEX_DIM = 20;
 export const HIT_DELTA = VERTEX_DIM / 2;
 export const COLORS = [
   SimpleColors.Red,

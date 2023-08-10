@@ -21,11 +21,9 @@ const pageStyleFn = (offset: number) => {
             </svg>
           </q-icon>
         </q-btn>
-        <!-- <q-toolbar-title> Cavalier Contours </q-toolbar-title> -->
-        <span class="text-h6"> Cavalier Contours </span>
         <q-separator vertical spaced />
 
-        <q-tabs align="left" dense>
+        <q-tabs align="left" outside-arrows dense shrink>
           <q-route-tab
             v-for="route in mainRoutes"
             :key="route.path"

@@ -10,6 +10,7 @@ const links = [
 
 <template>
   <div class="max-w-lg m-auto">
+    <span class="text-h6">Cavalier Contours Web Demo</span>
     <p>
       This is a web demo app for visualizing, testing, and documenting the
       <a href="https://github.com/jbuckmccready/cavalier_contours" target="_blank" rel="noopener"
